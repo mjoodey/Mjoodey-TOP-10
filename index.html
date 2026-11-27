@@ -3,23 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>توب 10 مع عبدالمجيد - بوابة التحديات</title>
+  <title>بوابة تحديات عبدالمجيد</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
   <style>
+    /* =========================================================================
+       الهوية البصرية لموقع عبدالمجيد (الوضع النهاري والليلي)
+       ========================================================================= */
     :root {
       --bg-page: #F7F2E7;
-      --bg-title-card: #FCF9F2;
+      --bg-card: #FCF9F2;
       --bg-input: #FDFBF7;
       --bg-slot: #EFE9DC;
       --bg-slot-hover: #EAE2D1;
       --bg-badge: #FFFFFF;
       --border-soft: #E5DEC9;
-      --border-title: #ECE4D4;
+      --border-card: #ECE4D4;
       --text-main: #1E1B18;
       --text-muted: #5C544D;
-      --text-hidden: #6E665E;
+      --text-subtle: #787067;
       --purple: #5B37B7;
       --purple-hover: #49299A;
       --purple-soft: rgba(91, 55, 183, 0.12);
@@ -46,16 +51,16 @@
 
     html.dark {
       --bg-page: #17151F;
-      --bg-title-card: #221E2D;
+      --bg-card: #221E2D;
       --bg-input: #1E1B28;
       --bg-slot: #262233;
       --bg-slot-hover: #2E293E;
       --bg-badge: #17151F;
       --border-soft: #352F47;
-      --border-title: #332D45;
+      --border-card: #332D45;
       --text-main: #F6F3EC;
       --text-muted: #B6AEC8;
-      --text-hidden: #8D84A3;
+      --text-subtle: #948BA8;
       --purple: #8B68F0;
       --purple-hover: #7A54E8;
       --purple-soft: rgba(139, 104, 240, 0.18);
@@ -94,15 +99,14 @@
 
     .app-container {
       width: 100%;
-      max-width: 820px;
+      max-width: 960px;
       margin: 0 auto;
-      padding: 16px 20px 52px;
-      position: relative;
+      padding: 14px 18px 50px;
     }
 
     .hidden-view { display: none !important; }
 
-    /* Top utility bar */
+    /* الشريط العلوي */
     .top-bar {
       display: flex;
       justify-content: space-between;
@@ -111,11 +115,7 @@
       margin-bottom: 6px;
     }
 
-    .top-bar-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .top-bar-group { display: flex; align-items: center; gap: 8px; }
 
     .back-home-btn {
       display: inline-flex;
@@ -124,23 +124,17 @@
       padding: 7px 14px;
       border-radius: 12px;
       border: 1.5px solid var(--border-soft);
-      background-color: var(--bg-title-card);
+      background-color: var(--bg-card);
       color: var(--text-main);
       font-family: inherit;
       font-size: 0.86rem;
       font-weight: 800;
       cursor: pointer;
-      transition: border-color 0.2s ease, color 0.2s ease;
     }
-
-    .back-home-btn:hover {
-      border-color: var(--purple);
-      color: var(--purple);
-    }
+    .back-home-btn:hover { border-color: var(--purple); color: var(--purple); }
 
     .icon-btn {
-      width: 38px;
-      height: 38px;
+      width: 38px; height: 38px;
       border-radius: 12px;
       border: 1px solid transparent;
       background: transparent;
@@ -149,34 +143,31 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
     }
-
     .icon-btn:hover { background-color: var(--bg-slot); color: var(--text-main); }
-    .icon-btn:active { transform: scale(0.94); }
     .icon-btn svg { width: 20px; height: 20px; stroke-width: 2; }
 
-    /* Brand Header */
-    .brand-header { text-align: center; margin-top: 4px; margin-bottom: 22px; }
+    /* ترويسة العنوان */
+    .brand-header { text-align: center; margin-bottom: 18px; }
 
     .brand-title {
       display: inline-flex;
       align-items: baseline;
       justify-content: center;
       gap: 10px;
-      font-size: clamp(2.15rem, 5vw, 2.8rem);
+      font-size: clamp(1.9rem, 5vw, 2.55rem);
       font-weight: 900;
-      line-height: 1.15;
+      line-height: 1.2;
     }
 
     .brand-word { color: var(--text-main); }
-    .brand-number {
+    .brand-highlight {
       color: var(--purple);
       position: relative;
       display: inline-block;
       padding-bottom: 6px;
     }
-    .brand-number::after {
+    .brand-highlight::after {
       content: "";
       position: absolute;
       left: -2px; right: -2px; bottom: 2px;
@@ -206,130 +197,100 @@
       font-weight: 800;
       width: fit-content;
       max-width: 100%;
+      flex-wrap: wrap;
     }
     .player-chip.visible { display: inline-flex; }
 
-    /* HOME HUB */
+    /* =========================================================================
+       بوابة التحديات الرئيسية (HOME HUB)
+       ========================================================================= */
     .hub-hero {
-      background-color: var(--bg-title-card);
-      border: 1.5px solid var(--border-title);
+      background-color: var(--bg-card);
+      border: 1.5px solid var(--border-card);
       border-radius: 22px;
       padding: 20px 22px;
       text-align: center;
       box-shadow: var(--shadow-card);
       margin-bottom: 20px;
     }
+    .hub-hero h1 { font-size: clamp(1.2rem, 3.3vw, 1.5rem); font-weight: 900; margin-bottom: 4px; }
+    .hub-hero p { font-size: 0.94rem; font-weight: 600; color: var(--text-muted); }
 
-    .hub-hero h1 {
-      font-size: clamp(1.2rem, 3.3vw, 1.5rem);
-      font-weight: 900;
-      margin-bottom: 4px;
-    }
-
-    .hub-hero p {
-      font-size: 0.94rem;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    .hub-single-wrap {
-      max-width: 520px;
-      margin: 0 auto 24px;
+    .hub-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
     }
 
     .challenge-card {
-      background-color: var(--bg-title-card);
-      border: 2px solid var(--gold);
-      border-radius: 24px;
-      padding: 24px 22px;
+      background-color: var(--bg-card);
+      border: 1.5px solid var(--border-card);
+      border-radius: 22px;
+      padding: 22px 20px;
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
       gap: 14px;
       box-shadow: var(--shadow-card);
       transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
-
     .challenge-card:hover {
       transform: translateY(-3px);
       border-color: var(--purple);
-      box-shadow: 0 12px 28px rgba(91, 55, 183, 0.14);
+      box-shadow: 0 10px 26px rgba(91, 55, 183, 0.13);
     }
+    .challenge-card.featured { border-color: var(--gold); }
 
-    .card-top-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
+    .card-top-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .card-icon {
-      width: 52px;
-      height: 52px;
-      border-radius: 16px;
+      width: 48px; height: 48px;
+      border-radius: 15px;
       background-color: var(--bg-slot);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.65rem;
+      font-size: 1.55rem;
     }
-
     .card-badge {
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       font-weight: 800;
-      padding: 4px 12px;
+      padding: 3px 11px;
       border-radius: 999px;
+      background-color: var(--purple-soft);
+      color: var(--purple);
+    }
+    .card-badge.gold {
       background-color: var(--gold-bg);
       color: var(--gold-text);
       border: 1px solid var(--gold-border);
     }
-
-    .card-title {
-      font-size: 1.25rem;
-      font-weight: 900;
-      color: var(--text-main);
-      line-height: 1.45;
-    }
-
-    .card-desc {
-      font-size: 0.92rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      line-height: 1.65;
-    }
-
-    .card-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
-    }
-
+    .card-title { font-size: 1.16rem; font-weight: 900; color: var(--text-main); line-height: 1.45; }
+    .card-desc { font-size: 0.89rem; font-weight: 600; color: var(--text-muted); line-height: 1.6; }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
     .mini-tag {
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       font-weight: 700;
-      padding: 3px 11px;
+      padding: 2px 10px;
       border-radius: 999px;
       background-color: var(--bg-slot);
       color: var(--text-muted);
     }
-
     .card-play-btn {
       width: 100%;
-      padding: 13px 18px;
+      padding: 12px 16px;
       border-radius: 14px;
       border: none;
       background-color: var(--purple);
       color: #FFFFFF;
       font-family: inherit;
-      font-size: 1.05rem;
+      font-size: 1rem;
       font-weight: 900;
       cursor: pointer;
-      transition: background-color 0.2s ease, transform 0.12s ease;
     }
-
     .card-play-btn:hover { background-color: var(--purple-hover); }
-    .card-play-btn:active { transform: scale(0.98); }
 
-    /* Suggestion Box */
+    /* صندوق الاقتراحات */
     .suggest-card {
       background-color: var(--bg-slot);
       border: 1.5px dashed var(--border-soft);
@@ -337,70 +298,39 @@
       padding: 20px;
       text-align: center;
     }
-
     .suggest-card h3 { font-size: 1.04rem; font-weight: 900; margin-bottom: 4px; }
     .suggest-card p { font-size: 0.86rem; font-weight: 600; color: var(--text-muted); margin-bottom: 14px; }
-
-    .suggest-form {
-      display: flex;
-      gap: 8px;
-      max-width: 560px;
-      margin: 0 auto;
-      flex-wrap: wrap;
-    }
-
+    .suggest-form { display: flex; gap: 8px; max-width: 560px; margin: 0 auto; flex-wrap: wrap; }
     .suggest-input {
-      flex: 1;
-      min-width: 200px;
+      flex: 1; min-width: 200px;
       padding: 10px 14px;
       border-radius: 12px;
       border: 1.5px solid var(--border-soft);
       background-color: var(--bg-input);
       color: var(--text-main);
-      font-family: inherit;
-      font-size: 0.94rem;
-      font-weight: 700;
-      outline: none;
+      font-family: inherit; font-size: 0.94rem; font-weight: 700; outline: none;
     }
     .suggest-input:focus { border-color: var(--purple); }
-
     .suggest-btn {
-      padding: 10px 22px;
-      border-radius: 12px;
-      border: none;
-      background-color: var(--purple);
-      color: #FFFFFF;
-      font-family: inherit;
-      font-size: 0.94rem;
-      font-weight: 800;
-      cursor: pointer;
+      padding: 10px 22px; border-radius: 12px; border: none;
+      background-color: var(--purple); color: #FFFFFF;
+      font-family: inherit; font-size: 0.94rem; font-weight: 800; cursor: pointer;
     }
+    .suggest-status { margin-top: 8px; font-size: 0.85rem; font-weight: 800; color: var(--found-text); min-height: 20px; }
 
-    .suggest-status {
-      margin-top: 8px;
-      font-size: 0.85rem;
-      font-weight: 800;
-      color: var(--found-text);
-      min-height: 20px;
-    }
-
-    /* TOP 10 GAME VIEW */
+    /* =========================================================================
+       عناصر مشتركة بين اللعبتين
+       ========================================================================= */
     .topic-card {
-      background-color: var(--bg-title-card);
-      border: 1px solid var(--border-title);
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-card);
       border-radius: 20px;
       padding: 18px 22px;
       text-align: center;
       box-shadow: var(--shadow-card);
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
-
-    .topic-title {
-      font-size: clamp(1.12rem, 3vw, 1.48rem);
-      font-weight: 800;
-      color: var(--text-main);
-      line-height: 1.5;
-    }
+    .topic-title { font-size: clamp(1.1rem, 3vw, 1.46rem); font-weight: 800; line-height: 1.5; }
 
     .guess-form {
       display: flex;
@@ -408,66 +338,64 @@
       background-color: var(--bg-input);
       border: 2px solid var(--purple);
       border-radius: 999px;
-      padding: 6px 8px 6px 6px;
+      padding: 5px 6px 5px 5px;
       box-shadow: var(--shadow-input);
-      margin-bottom: 12px;
       transition: box-shadow 0.2s ease, border-color 0.2s ease;
     }
-
     .guess-form:focus-within { box-shadow: 0 0 0 4px var(--purple-soft), var(--shadow-input); }
     .guess-form.shake { animation: shake 0.36s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; border-color: var(--danger); }
 
     .guess-input {
-      flex: 1;
-      border: none;
-      outline: none;
-      background: transparent;
-      font-family: inherit;
-      font-size: 1.05rem;
-      font-weight: 600;
-      color: var(--text-main);
-      padding: 10px 16px;
-      min-width: 0;
+      flex: 1; border: none; outline: none; background: transparent;
+      font-family: inherit; font-size: 1rem; font-weight: 700;
+      color: var(--text-main); padding: 9px 14px; min-width: 0;
     }
-    .guess-input::placeholder { color: var(--text-hidden); opacity: 0.85; }
-    .guess-input:disabled { opacity: 0.6; cursor: not-allowed; }
+    .guess-input::placeholder { color: var(--text-subtle); opacity: 0.85; }
+    .guess-input:disabled { opacity: 0.55; cursor: not-allowed; }
 
     .guess-btn {
       flex-shrink: 0;
-      background-color: var(--purple);
-      color: #FFFFFF;
-      border: none;
-      border-radius: 999px;
-      padding: 10px 26px;
-      font-family: inherit;
-      font-size: 1rem;
-      font-weight: 800;
-      cursor: pointer;
+      background-color: var(--purple); color: #FFFFFF;
+      border: none; border-radius: 999px;
+      padding: 9px 24px;
+      font-family: inherit; font-size: 0.98rem; font-weight: 800; cursor: pointer;
     }
     .guess-btn:hover:not(:disabled) { background-color: var(--purple-hover); }
     .guess-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .hint-controls-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 10px;
+    .feedback-bar {
+      min-height: 26px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 10px 0;
     }
+    .feedback-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 14px; border-radius: 999px;
+      font-size: 0.86rem; font-weight: 700;
+      opacity: 0; transform: translateY(-3px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      text-align: center;
+    }
+    .feedback-pill.visible { opacity: 1; transform: translateY(0); }
+    .feedback-pill.success { background-color: var(--found-bg); color: var(--found-text); border: 1px solid var(--found-border); }
+    .feedback-pill.error { background-color: var(--danger-bg); color: var(--danger); border: 1px solid var(--missed-border); }
+    .feedback-pill.info { background-color: var(--purple-soft); color: var(--purple); border: 1px solid rgba(91, 55, 183, 0.25); }
 
+    /* =========================================================================
+       تحدي 1: توب 10 دول تشبه سويسرا بالخضرة والغابات
+       ========================================================================= */
+    .swiss-wrap { max-width: 820px; margin: 0 auto; }
+
+    .hint-controls-row {
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 12px; margin-bottom: 6px;
+    }
     .hint-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 7px 16px;
-      border-radius: 999px;
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 8px 18px; border-radius: 999px;
       border: 1.5px solid var(--gold-border);
-      background-color: var(--gold-bg);
-      color: var(--gold-text);
-      font-family: inherit;
-      font-size: 0.88rem;
-      font-weight: 800;
-      cursor: pointer;
+      background-color: var(--gold-bg); color: var(--gold-text);
+      font-family: inherit; font-size: 0.9rem; font-weight: 800; cursor: pointer;
     }
     .hint-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
@@ -478,102 +406,50 @@
       color: var(--gold-text);
       border-radius: 16px;
       padding: 13px 16px;
-      margin-bottom: 14px;
-      font-size: 0.94rem;
-      font-weight: 700;
-      line-height: 1.6;
-      animation: fadeSlideIn 0.3s ease;
+      margin-bottom: 12px;
+      font-size: 0.94rem; font-weight: 700; line-height: 1.6;
+      animation: fadeSlideIn 0.28s ease;
     }
     .hint-box.show { display: block; }
-    .hint-box-title { font-weight: 900; margin-bottom: 3px; display: block; }
-
-    .feedback-bar {
-      min-height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 10px;
-    }
-
-    .feedback-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 14px;
-      border-radius: 999px;
-      font-size: 0.88rem;
-      font-weight: 700;
-      opacity: 0;
-      transform: translateY(-4px);
-      transition: opacity 0.2s ease, transform 0.2s ease;
-      text-align: center;
-    }
-    .feedback-pill.visible { opacity: 1; transform: translateY(0); }
-    .feedback-pill.success { background-color: var(--found-bg); color: var(--found-text); border: 1px solid var(--found-border); }
-    .feedback-pill.error { background-color: var(--danger-bg); color: var(--danger); border: 1px solid var(--missed-border); }
-    .feedback-pill.info { background-color: var(--purple-soft); color: var(--purple); border: 1px solid rgba(91, 55, 183, 0.25); }
+    .hint-box-title { font-weight: 900; display: block; margin-bottom: 3px; }
 
     .status-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 14px; margin-bottom: 16px; flex-wrap: wrap;
     }
-
-    .found-counter { font-size: 0.96rem; font-weight: 800; color: var(--text-main); white-space: nowrap; }
+    .found-counter { font-size: 0.96rem; font-weight: 800; white-space: nowrap; }
     .progress-track { flex: 1; min-width: 80px; height: 7px; background-color: var(--track-bg); border-radius: 999px; overflow: hidden; }
-    .progress-fill { height: 100%; width: 0%; background-color: var(--purple); border-radius: 999px; transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
-
+    .progress-fill { height: 100%; width: 0%; background-color: var(--purple); border-radius: 999px; transition: width 0.35s ease; }
     .mistakes-group { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
-    .mistakes-label { font-size: 0.94rem; font-weight: 700; color: var(--text-muted); }
+    .mistakes-label { font-size: 0.92rem; font-weight: 700; color: var(--text-muted); }
     .mistakes-dots { display: flex; align-items: center; gap: 7px; }
 
     .mistake-circle {
-      width: 24px; height: 24px;
-      border-radius: 50%;
-      background-color: var(--bg-badge);
-      border: 2px solid var(--purple);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      transition: all 0.25s ease;
+      width: 24px; height: 24px; border-radius: 50%;
+      background-color: var(--bg-badge); border: 2px solid var(--purple);
+      display: inline-flex; align-items: center; justify-content: center; position: relative;
     }
-    .mistake-circle::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background-color: var(--purple); transition: transform 0.2s ease, opacity 0.2s ease; }
-    .mistake-circle.used { background-color: var(--danger-bg); border-color: var(--danger); transform: scale(1.06); }
-    .mistake-circle.used::after { opacity: 0; transform: scale(0); }
-    .mistake-circle .x-mark { position: absolute; color: var(--danger); font-size: 13px; font-weight: 900; line-height: 1; opacity: 0; transform: scale(0.4); transition: opacity 0.2s ease, transform 0.2s ease; }
-    .mistake-circle.used .x-mark { opacity: 1; transform: scale(1); }
+    .mistake-circle::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background-color: var(--purple); }
+    .mistake-circle.used { background-color: var(--danger-bg); border-color: var(--danger); }
+    .mistake-circle.used::after { display: none; }
+    .mistake-circle .x-mark { position: absolute; color: var(--danger); font-size: 13px; font-weight: 900; opacity: 0; }
+    .mistake-circle.used .x-mark { opacity: 1; }
 
     .end-banner {
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      flex-wrap: wrap;
-      padding: 16px 20px;
-      border-radius: 16px;
-      margin-bottom: 16px;
-      animation: fadeSlideIn 0.35s ease;
+      display: none; align-items: center; justify-content: space-between;
+      gap: 14px; flex-wrap: wrap;
+      padding: 16px 20px; border-radius: 16px; margin-bottom: 16px;
     }
     .end-banner.show { display: flex; }
     .end-banner.won { background-color: var(--found-bg); border: 1.5px solid var(--found-border); color: var(--found-text); }
     .end-banner.lost { background-color: var(--missed-bg); border: 1.5px solid var(--missed-border); color: var(--missed-text); }
-    .end-banner-text h2 { font-size: 1.06rem; font-weight: 800; margin-bottom: 2px; }
-    .end-banner-text p { font-size: 0.9rem; font-weight: 600; opacity: 0.92; }
+    .end-banner h2 { font-size: 1.06rem; font-weight: 800; margin-bottom: 2px; }
+    .end-banner p { font-size: 0.9rem; font-weight: 600; }
 
     .play-again-btn {
-      background-color: var(--purple);
-      color: #FFFFFF;
-      border: none;
-      border-radius: 12px;
-      padding: 10px 20px;
-      font-family: inherit;
-      font-size: 0.95rem;
-      font-weight: 800;
-      cursor: pointer;
+      background-color: var(--purple); color: #FFFFFF;
+      border: none; border-radius: 12px; padding: 10px 22px;
+      font-family: inherit; font-size: 0.95rem; font-weight: 800; cursor: pointer;
     }
     .play-again-btn:hover { background-color: var(--purple-hover); }
 
@@ -582,128 +458,263 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
       grid-template-rows: repeat(5, auto);
       grid-auto-flow: column;
-      gap: 12px 16px;
+      gap: 12px 14px;
     }
 
     .slot-card {
       background-color: var(--bg-slot);
       border: 1.5px solid var(--border-soft);
       border-radius: 14px;
-      padding: 12px 14px;
+      padding: 11px 13px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      min-height: 62px;
-      transition: background-color 0.3s ease, border-color 0.3s ease;
+      min-height: 68px;
     }
-    .slot-main { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+    .slot-main { display: flex; align-items: center; gap: 11px; min-width: 0; flex: 1; }
     .rank-badge {
-      width: 34px; height: 34px;
-      border-radius: 9px;
-      background-color: var(--bg-badge);
-      color: var(--purple);
-      font-size: 1rem;
-      font-weight: 900;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
+      width: 34px; height: 34px; border-radius: 9px;
+      background-color: var(--bg-badge); color: var(--purple);
+      font-size: 1rem; font-weight: 900;
+      display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
     .slot-content { min-width: 0; flex: 1; }
-    .slot-placeholder { font-size: 1.05rem; font-weight: 700; color: var(--text-hidden); letter-spacing: 0.08em; user-select: none; }
-    .slot-answer-name { font-size: 1rem; font-weight: 800; line-height: 1.35; }
+    .slot-placeholder { font-size: 1rem; font-weight: 800; color: var(--text-subtle); letter-spacing: 0.08em; }
+    .slot-simple-hint {
+      font-size: 0.77rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+    .slot-answer-name { font-size: 1.02rem; font-weight: 800; line-height: 1.3; }
     .slot-status-tag { font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 999px; flex-shrink: 0; }
 
-    .slot-card.found { background-color: var(--found-bg); border-color: var(--found-border); color: var(--found-text); animation: popReveal 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
+    .slot-card.found { background-color: var(--found-bg); border-color: var(--found-border); color: var(--found-text); animation: popReveal 0.38s ease; }
     .slot-card.found .rank-badge { background-color: var(--found-badge-bg); color: var(--found-badge-text); }
     .slot-card.found .slot-status-tag { background-color: rgba(34, 153, 84, 0.16); color: var(--found-text); }
-    .slot-card.missed { background-color: var(--missed-bg); border-color: var(--missed-border); color: var(--missed-text); animation: popReveal 0.42s cubic-bezier(0.22, 1, 0.36, 1); }
+    .slot-card.found .slot-simple-hint { color: var(--found-text); opacity: 0.85; }
+
+    .slot-card.missed { background-color: var(--missed-bg); border-color: var(--missed-border); color: var(--missed-text); animation: popReveal 0.38s ease; }
     .slot-card.missed .rank-badge { background-color: var(--missed-badge-bg); color: var(--missed-badge-text); }
     .slot-card.missed .slot-status-tag { background-color: rgba(214, 69, 69, 0.14); color: var(--missed-text); }
+    .slot-card.missed .slot-simple-hint { color: var(--missed-text); opacity: 0.85; }
 
-    /* Modal */
+    /* =========================================================================
+       تحدي 2: اكتشف الدولة مع عبدالمجيد (الكرة الأرضية)
+       ========================================================================= */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .stat-box {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 16px;
+      padding: 10px 8px;
+      text-align: center;
+      box-shadow: var(--shadow-card);
+    }
+    .stat-label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin-bottom: 2px; }
+    .stat-value { font-size: 1.2rem; font-weight: 900; color: var(--purple); }
+
+    .globe-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .globe-card, .guess-card, .guesses-card {
+      background-color: var(--bg-card);
+      border: 1.5px solid var(--border-card);
+      border-radius: 22px;
+      padding: 16px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .globe-stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-height: 460px;
+      margin: 0 auto;
+      border-radius: 18px;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 45%, rgba(91, 55, 183, 0.06), transparent 72%);
+      touch-action: none;
+      user-select: none;
+    }
+
+    #globeCanvas { width: 100%; height: 100%; display: block; cursor: grab; }
+    #globeCanvas:active { cursor: grabbing; }
+
+    .globe-loading {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+      background-color: var(--bg-card); color: var(--text-muted);
+      font-weight: 800; font-size: 0.95rem; z-index: 5; text-align: center; padding: 20px;
+    }
+    .globe-loading.hidden { display: none; }
+    .spinner { width: 36px; height: 36px; border-radius: 50%; border: 4px solid var(--border-soft); border-top-color: var(--purple); animation: spin 0.8s linear infinite; }
+
+    .zoom-controls { position: absolute; bottom: 12px; left: 12px; display: flex; flex-direction: column; gap: 6px; z-index: 4; }
+    .zoom-btn {
+      width: 38px; height: 38px; border-radius: 12px;
+      border: 1.5px solid var(--border-soft); background-color: var(--bg-card); color: var(--text-main);
+      font-family: inherit; font-size: 1.25rem; font-weight: 900;
+      display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    }
+    .zoom-btn:hover { border-color: var(--purple); color: var(--purple); }
+
+    .globe-hint-note { text-align: center; font-size: 0.78rem; font-weight: 700; color: var(--text-subtle); margin-top: 8px; }
+
+    .legend-wrap {
+      margin-top: 12px; padding: 10px 14px;
+      background-color: var(--bg-slot); border-radius: 14px; border: 1px solid var(--border-soft);
+    }
+    .legend-bar {
+      height: 11px; border-radius: 999px;
+      background: linear-gradient(to left, #FEF08A 0%, #FDBA74 28%, #F97316 55%, #DC2626 80%, #7F1D1D 100%);
+      border: 1px solid rgba(0, 0, 0, 0.08); margin-bottom: 6px;
+    }
+    .legend-labels { display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 800; color: var(--text-muted); }
+
+    .controls-panel { display: flex; flex-direction: column; gap: 12px; }
+
+    .did-you-mean {
+      display: none; margin-top: 10px; padding: 10px 12px;
+      background-color: var(--bg-slot); border: 1.5px solid var(--border-soft);
+      border-radius: 14px; font-size: 0.9rem; font-weight: 700;
+    }
+    .did-you-mean.visible { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+    .dym-label { color: var(--text-muted); font-weight: 800; }
+    .dym-btn {
+      background-color: var(--bg-card); color: var(--purple);
+      border: 1.5px solid var(--purple); border-radius: 999px;
+      padding: 4px 12px; font-family: inherit; font-size: 0.88rem; font-weight: 800; cursor: pointer;
+    }
+    .dym-btn:hover { background-color: var(--purple); color: #FFFFFF; }
+
+    .continent-banner {
+      display: none; margin-top: 8px; padding: 9px 14px; border-radius: 13px;
+      background-color: var(--gold-bg); border: 1.5px solid var(--gold-border); color: var(--gold-text);
+      font-size: 0.9rem; font-weight: 800; text-align: center;
+    }
+    .continent-banner.show { display: block; }
+
+    .action-buttons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+    .action-btn {
+      padding: 9px 10px; border-radius: 13px;
+      border: 1.5px solid var(--border-soft); background-color: var(--bg-slot); color: var(--text-main);
+      font-family: inherit; font-size: 0.86rem; font-weight: 800; cursor: pointer;
+    }
+    .action-btn:hover:not(:disabled) { border-color: var(--purple); color: var(--purple); }
+    .action-btn.hint-style { background-color: var(--gold-bg); border-color: var(--gold-border); color: var(--gold-text); }
+    .action-btn.danger-style:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); background-color: var(--danger-bg); }
+    .action-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .result-banner {
+      display: none; flex-direction: column; gap: 10px; text-align: center;
+      padding: 18px 16px; border-radius: 18px;
+    }
+    .result-banner.show { display: flex; }
+    .result-banner.won { background-color: var(--found-bg); border: 1.5px solid var(--found-border); color: var(--found-text); }
+    .result-banner.gaveup { background-color: var(--danger-bg); border: 1.5px solid var(--missed-border); color: var(--danger); }
+    .result-banner h2 { font-size: 1.15rem; font-weight: 900; }
+    .result-banner p { font-size: 0.92rem; font-weight: 700; }
+
+    .guesses-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .guesses-header h3 { font-size: 1rem; font-weight: 900; }
+    .guesses-sub { font-size: 0.8rem; font-weight: 700; color: var(--text-subtle); }
+    .guesses-list { display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow-y: auto; }
+    .empty-guesses {
+      text-align: center; padding: 24px 12px; color: var(--text-subtle);
+      font-size: 0.88rem; font-weight: 700; background-color: var(--bg-slot);
+      border-radius: 14px; border: 1px dashed var(--border-soft);
+    }
+    .guess-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 10px 12px; border-radius: 14px; background-color: var(--bg-slot);
+      border: 1.5px solid var(--border-soft); cursor: pointer;
+    }
+    .guess-row:hover { border-color: var(--purple); }
+    .guess-row.is-winner { background-color: var(--found-bg); border-color: var(--found-border); color: var(--found-text); }
+    .guess-row-main { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .color-swatch { width: 20px; height: 20px; border-radius: 7px; border: 1.5px solid rgba(0, 0, 0, 0.15); flex-shrink: 0; }
+    .guess-country-name { font-size: 0.95rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .guess-distance { font-size: 0.85rem; font-weight: 800; color: var(--text-muted); white-space: nowrap; }
+
+    /* =========================================================================
+       النوافذ المنبثقة (الاسم + دولة ومدينة الأحلام)
+       ========================================================================= */
     .modal-backdrop {
-      position: fixed;
-      inset: 0;
+      position: fixed; inset: 0;
       background-color: rgba(23, 21, 31, 0.62);
       backdrop-filter: blur(5px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-      z-index: 60;
-      overflow-y: auto;
+      display: flex; align-items: center; justify-content: center;
+      padding: 18px; z-index: 60; overflow-y: auto;
     }
     .modal-backdrop.hidden { display: none; }
 
     .modal-card {
-      width: 100%;
-      max-width: 440px;
-      background-color: var(--bg-title-card);
-      border: 1.5px solid var(--border-title);
-      border-radius: 24px;
-      padding: 26px 22px;
-      text-align: center;
+      width: 100%; max-width: 440px;
+      background-color: var(--bg-card);
+      border: 1.5px solid var(--border-card);
+      border-radius: 24px; padding: 26px 22px; text-align: center;
       box-shadow: 0 20px 45px rgba(0, 0, 0, 0.22);
-      animation: fadeSlideIn 0.3s ease;
+      animation: fadeSlideIn 0.28s ease;
     }
-    .modal-title { font-size: 1.35rem; font-weight: 900; color: var(--text-main); margin-bottom: 6px; }
-    .modal-desc { font-size: 0.92rem; font-weight: 600; color: var(--text-muted); margin-bottom: 16px; line-height: 1.6; }
+    .modal-title { font-size: 1.32rem; font-weight: 900; margin-bottom: 6px; }
+    .modal-desc { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-bottom: 16px; line-height: 1.6; }
     .modal-form { display: flex; flex-direction: column; gap: 13px; text-align: right; }
-    .field-label { display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; font-weight: 800; color: var(--text-main); margin-bottom: 5px; padding: 0 4px; }
+    .field-label { display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; font-weight: 800; margin-bottom: 5px; padding: 0 4px; }
     .badge-req { font-size: 0.72rem; font-weight: 800; color: var(--purple); background-color: var(--purple-soft); padding: 1px 8px; border-radius: 999px; }
-
+    .badge-opt { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); background-color: var(--bg-slot); padding: 1px 8px; border-radius: 999px; }
     .modal-input {
-      width: 100%;
-      padding: 11px 15px;
-      border-radius: 14px;
-      border: 2px solid var(--border-soft);
-      background-color: var(--bg-input);
-      color: var(--text-main);
-      font-family: inherit;
-      font-size: 0.98rem;
-      font-weight: 700;
-      outline: none;
+      width: 100%; padding: 11px 15px; border-radius: 14px;
+      border: 2px solid var(--border-soft); background-color: var(--bg-input); color: var(--text-main);
+      font-family: inherit; font-size: 0.98rem; font-weight: 700; outline: none;
     }
     .modal-input:focus { border-color: var(--purple); }
-
     .form-error-msg { color: var(--danger); font-size: 0.84rem; font-weight: 700; text-align: center; min-height: 18px; }
-
     .primary-btn {
-      width: 100%;
-      padding: 13px 18px;
-      border-radius: 14px;
-      border: none;
-      background-color: var(--purple);
-      color: #FFFFFF;
-      font-family: inherit;
-      font-size: 1.04rem;
-      font-weight: 800;
-      cursor: pointer;
+      width: 100%; padding: 12px 18px; border-radius: 14px; border: none;
+      background-color: var(--purple); color: #FFFFFF;
+      font-family: inherit; font-size: 1.02rem; font-weight: 900; cursor: pointer;
     }
     .primary-btn:hover { background-color: var(--purple-hover); }
 
+    @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-7px); } 40% { transform: translateX(7px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }
     @keyframes popReveal { 0% { transform: scale(0.95); opacity: 0.5; } 60% { transform: scale(1.025); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
-    @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 
+    @media (max-width: 820px) {
+      .globe-layout { grid-template-columns: 1fr; }
+      .globe-stage { max-height: 360px; }
+    }
     @media (max-width: 640px) {
-      .app-container { padding: 14px 14px 36px; }
+      .app-container { padding: 12px 12px 36px; }
       .slots-grid { grid-template-columns: 1fr; grid-template-rows: none; grid-auto-flow: row; gap: 10px; }
       .progress-track { order: 3; flex-basis: 100%; }
-      .guess-btn { padding: 10px 18px; }
+      .stats-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .guess-btn { padding: 9px 18px; }
     }
   </style>
 </head>
 <body>
   <main class="app-container">
-    <!-- Top Utility Bar -->
+    <!-- الشريط العلوي -->
     <div class="top-bar">
       <div class="top-bar-group">
         <button type="button" id="backHomeBtn" class="back-home-btn hidden-view">
           <span>🏠</span>
-          <span>الرئيسية</span>
+          <span>بوابة التحديات</span>
         </button>
       </div>
       <div class="top-bar-group">
@@ -735,54 +746,74 @@
             <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
           </svg>
         </button>
-        <button type="button" id="restartBtn" class="icon-btn hidden-view" title="إعادة اللعب" aria-label="إعادة اللعب">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path>
-            <path d="M3 3v5h5"></path>
-          </svg>
-        </button>
       </div>
     </div>
 
-    <!-- Brand Header -->
+    <!-- ترويسة العنوان الديناميكية -->
     <header class="brand-header">
-      <div class="brand-title">
-        <span class="brand-word">توب</span>
-        <span class="brand-number">10</span>
+      <div id="brandTitle" class="brand-title">
+        <span class="brand-word">تحديات</span>
+        <span class="brand-highlight">عبدالمجيد</span>
       </div>
-      <p class="brand-subtitle">مع عبدالمجيد</p>
+      <p id="brandSubtitle" class="brand-subtitle">بوابة التحديات التفاعلية</p>
       <div id="playerChip" class="player-chip" aria-live="polite"></div>
     </header>
 
-    <!-- VIEW 0: HOME HUB -->
+    <!-- =======================================================================
+         الواجهة 0: بوابة التحديات الرئيسية
+         ======================================================================= -->
     <section id="hubView" aria-label="بوابة التحديات الرئيسية">
       <div class="hub-hero">
         <h1>مرحباً بك في بوابة تحديات عبدالمجيد 🎯</h1>
-        <p>تحدّي الزمن الجميل وصل! اختبر ذاكرتك واسترجع ذكريات الطفولة الآن.</p>
+        <p>اختر التحدي الذي يعجبك وابدأ اللعب فوراً!</p>
       </div>
 
-      <div class="hub-single-wrap">
+      <div class="hub-grid">
+        <!-- البطاقة 1: اكتشف الدولة مع عبدالمجيد -->
+        <article class="challenge-card featured">
+          <div>
+            <div class="card-top-row" style="margin-bottom: 10px;">
+              <span class="card-icon">🌍</span>
+              <span class="card-badge gold">جديد 🔥</span>
+            </div>
+            <h2 class="card-title">اكتشف الدولة مع عبدالمجيد</h2>
+            <p class="card-desc">خمّن الدولة الغامضة على كرة أرضية ثلاثية الأبعاد بأسماء الدول الواضحة، وتتبع قربك بالألوان والمسافة بالكيلومتر!</p>
+          </div>
+          <div>
+            <div class="card-tags" style="margin-bottom: 12px;">
+              <span class="mini-tag">كرة 3D بأسماء الدول</span>
+              <span class="mini-tag">هل تقصد؟</span>
+              <span class="mini-tag">تلميح القارة</span>
+            </div>
+            <button type="button" id="launchGlobeBtn" class="card-play-btn">ابدأ اكتشاف الدولة ←</button>
+          </div>
+        </article>
+
+        <!-- البطاقة 2: أفضل 10 دول تشبه سويسرا بالخضرة والغابات -->
         <article class="challenge-card">
-          <div class="card-top-row">
-            <span class="card-icon">📺</span>
-            <span class="card-badge">تحدي جديد 🔥</span>
+          <div>
+            <div class="card-top-row" style="margin-bottom: 10px;">
+              <span class="card-icon">🏔️</span>
+              <span class="card-badge">توب 10 🌿</span>
+            </div>
+            <h2 class="card-title">أفضل 10 دول تشبه سويسرا بالخضرة والغابات</h2>
+            <p class="card-desc">شاركنا دولة ومدينة أحلامك ثم خمّن أفضل 10 دول تضاهي سويسرا بالطبيعة والجبال والغابات، مع تلميح بسيط بجانب كل دولة وتلميحين قويين جداً!</p>
           </div>
-          <h2 class="card-title">أشهر 10 كرتونات على القناة السعودية الأولى زمان</h2>
-          <p class="card-desc">هل تذكر كرتونات العصر الذهبي على القناة السعودية الأولى؟ لديك 5 أخطاء وتلميحان قويان لكشف القائمة الكاملة!</p>
-          <div class="card-tags">
-            <span class="mini-tag">توب 10</span>
-            <span class="mini-tag">تلميحان قويان</span>
-            <span class="mini-tag">مطابقة ذكية</span>
-            <span class="mini-tag">5 أخطاء</span>
+          <div>
+            <div class="card-tags" style="margin-bottom: 12px;">
+              <span class="mini-tag">تلميح بسيط لكل دولة</span>
+              <span class="mini-tag">تلميحان قويان جداً</span>
+              <span class="mini-tag">5 أخطاء</span>
+            </div>
+            <button type="button" id="launchSwissBtn" class="card-play-btn">ابدأ تحدي التوب 10 ←</button>
           </div>
-          <button type="button" id="launchCartoonsBtn" class="card-play-btn">ابدأ التحدي الآن ←</button>
         </article>
       </div>
 
-      <!-- Visitor Suggestion Box -->
+      <!-- صندوق اقتراحات الزوار -->
       <div class="suggest-card">
         <h3>💡 عندك فكرة للتحدي القادم؟</h3>
-        <p>اقترح أي موضوع تحب نضيفه هنا في بوابة التحديات وتصلني فكرتك مباشرة!</p>
+        <p>اقترح أي موضوع أو لعبة تحب نضيفها هنا في بوابة التحديات وتصلني فكرتك مباشرة!</p>
         <form id="suggestForm" class="suggest-form" autocomplete="off">
           <input id="suggestInput" class="suggest-input" type="text" maxlength="120" placeholder="اكتب اقتراحك هنا..." required />
           <button type="submit" class="suggest-btn">إرسال الاقتراح</button>
@@ -791,65 +822,157 @@
       </div>
     </section>
 
-    <!-- VIEW 1: TOP 10 CARTOONS GAME VIEW -->
-    <section id="top10View" class="hidden-view" aria-label="لعبة أشهر 10 كرتونات على القناة السعودية الأولى زمان">
+    <!-- =======================================================================
+         الواجهة 1: تحدي أفضل 10 دول تشبه سويسرا بالخضرة والغابات
+         ======================================================================= -->
+    <section id="swissView" class="swiss-wrap hidden-view" aria-label="أفضل 10 دول تشبه سويسرا بالخضرة والغابات">
       <section class="topic-card">
-        <h1 class="topic-title">أشهر 10 كرتونات على القناة السعودية الأولى زمان</h1>
+        <h1 class="topic-title">أفضل 10 دول تشبه سويسرا بالخضرة والغابات</h1>
       </section>
 
-      <form id="guessForm" class="guess-form" autocomplete="off">
-        <input id="guessInput" class="guess-input" type="text" placeholder="اكتب اسم الكرتون..." aria-label="اكتب اسم الكرتون" />
-        <button id="guessBtn" class="guess-btn" type="submit">خمّن</button>
+      <form id="swissGuessForm" class="guess-form" autocomplete="off">
+        <input id="swissGuessInput" class="guess-input" type="text" placeholder="اكتب اسم الدولة..." aria-label="اكتب اسم الدولة" />
+        <button id="swissGuessBtn" class="guess-btn" type="submit">خمّن</button>
       </form>
 
+      <!-- تلميحان قويان جداً تحت كلمة خمّن -->
       <div class="hint-controls-row">
-        <button type="button" id="hintBtn" class="hint-btn">
+        <button type="button" id="swissHintBtn" class="hint-btn">
           <span>💡</span>
-          <span id="hintBtnText">تلميح قوي (2 متبقي)</span>
+          <span id="swissHintBtnText">تلميح قوي جداً (2 متبقي)</span>
         </button>
       </div>
 
-      <div id="hintBox" class="hint-box" aria-live="polite">
-        <span id="hintBoxTitle" class="hint-box-title"></span>
-        <span id="hintBoxBody"></span>
+      <div id="swissHintBox" class="hint-box" aria-live="polite">
+        <span id="swissHintBoxTitle" class="hint-box-title"></span>
+        <span id="swissHintBoxBody"></span>
       </div>
 
       <div class="feedback-bar" aria-live="polite">
-        <span id="feedbackPill" class="feedback-pill"></span>
+        <span id="swissFeedbackPill" class="feedback-pill"></span>
       </div>
 
       <section class="status-row">
-        <div id="foundCounter" class="found-counter">وجدت 0 من 10</div>
-        <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+        <div id="swissFoundCounter" class="found-counter">وجدت 0 من 10</div>
+        <div class="progress-track"><div id="swissProgressFill" class="progress-fill"></div></div>
         <div class="mistakes-group">
           <span class="mistakes-label">الأخطاء</span>
-          <div id="mistakesDots" class="mistakes-dots"></div>
+          <div id="swissMistakesDots" class="mistakes-dots"></div>
         </div>
       </section>
 
-      <section id="endBanner" class="end-banner" aria-live="assertive">
-        <div class="end-banner-text">
-          <h2 id="endTitle"></h2>
-          <p id="endSubtitle"></p>
+      <section id="swissEndBanner" class="end-banner" aria-live="assertive">
+        <div>
+          <h2 id="swissEndTitle"></h2>
+          <p id="swissEndSubtitle"></p>
         </div>
-        <button type="button" id="playAgainBtn" class="play-again-btn">العب مجدداً</button>
+        <button type="button" id="swissPlayAgainBtn" class="play-again-btn">العب مجدداً</button>
       </section>
 
-      <section id="slotsGrid" class="slots-grid"></section>
+      <section id="swissSlotsGrid" class="slots-grid"></section>
+    </section>
+
+    <!-- =======================================================================
+         الواجهة 2: لعبة اكتشف الدولة مع عبدالمجيد (الكرة الأرضية)
+         ======================================================================= -->
+    <section id="globeView" class="hidden-view" aria-label="اكتشف الدولة مع عبدالمجيد">
+      <section class="stats-strip" aria-label="إحصائيات اكتشف الدولة">
+        <div class="stat-box">
+          <div class="stat-label">التخمينات</div>
+          <div id="guessCountVal" class="stat-value">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">الجولات</div>
+          <div id="gamesPlayedVal" class="stat-value">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">الانتصارات</div>
+          <div id="winsVal" class="stat-value">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">متوسط الفوز</div>
+          <div id="avgGuessesVal" class="stat-value">—</div>
+        </div>
+      </section>
+
+      <section class="globe-layout">
+        <div class="globe-card">
+          <div id="globeStage" class="globe-stage">
+            <canvas id="globeCanvas" aria-label="الكرة الأرضية التفاعلية"></canvas>
+            <div id="globeLoading" class="globe-loading">
+              <div class="spinner"></div>
+              <span id="globeLoadingText">جاري تحميل خريطة العالم...</span>
+            </div>
+            <div class="zoom-controls" aria-label="التحكم بالتقريب">
+              <button type="button" id="zoomInBtn" class="zoom-btn" title="تكبير">+</button>
+              <button type="button" id="zoomOutBtn" class="zoom-btn" title="تصغير">−</button>
+            </div>
+          </div>
+
+          <p class="globe-hint-note">اسحب الكرة لتدويرها وكبّرها (+) لتظهر أسماء الدول الأصغر بوضوح</p>
+
+          <div class="legend-wrap">
+            <div class="legend-bar"></div>
+            <div class="legend-labels">
+              <span>بعيد</span>
+              <span>متوسط</span>
+              <span>قريب جداً</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls-panel">
+          <div class="guess-card">
+            <form id="globeGuessForm" class="guess-form" autocomplete="off">
+              <input id="globeGuessInput" class="guess-input" type="text" placeholder="اكتب اسم دولة للتخمين..." aria-label="اكتب اسم دولة" />
+              <button id="globeGuessBtn" class="guess-btn" type="submit">خمّن</button>
+            </form>
+
+            <div id="didYouMeanBox" class="did-you-mean" aria-live="polite"></div>
+
+            <div class="feedback-bar" aria-live="polite">
+              <span id="globeFeedbackPill" class="feedback-pill"></span>
+            </div>
+
+            <div id="continentBanner" class="continent-banner" aria-live="polite"></div>
+
+            <div class="action-buttons">
+              <button type="button" id="continentBtn" class="action-btn hint-style">أي قارة</button>
+              <button type="button" id="giveUpBtn" class="action-btn danger-style">استسلم</button>
+              <button type="button" id="newGameBtn" class="action-btn">لعبة جديدة</button>
+            </div>
+          </div>
+
+          <section id="globeResultBanner" class="result-banner" aria-live="assertive">
+            <h2 id="globeResultTitle"></h2>
+            <p id="globeResultDesc"></p>
+            <button type="button" id="globePlayAgainBtn" class="play-again-btn">العب مرة ثانية</button>
+          </section>
+
+          <div class="guesses-card">
+            <div class="guesses-header">
+              <h3>تخميناتك السابقة</h3>
+              <span class="guesses-sub">مرتبة من الأقرب إلى الأبعد</span>
+            </div>
+            <div id="guessesList" class="guesses-list">
+              <div class="empty-guesses">ابدأ بتخمين أي دولة في العالم لتتلوّن الكرة الأرضية وتعرف كم أنت قريب!</div>
+            </div>
+          </div>
+        </div>
+      </section>
     </section>
   </main>
 
-  <!-- ENTRY MODAL -->
-  <div id="entryModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="entryModalTitle">
+  <!-- النافذة 1: إدخال اسم اللاعب -->
+  <div id="nameModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="nameModalTitle">
     <div class="modal-card">
-      <div class="brand-title" style="font-size: 1.85rem; margin-bottom: 4px;">
-        <span class="brand-word">توب</span>
-        <span class="brand-number">10</span>
+      <div class="brand-title" style="font-size: 1.75rem; margin-bottom: 4px;">
+        <span class="brand-word">تحديات</span>
+        <span class="brand-highlight">عبدالمجيد</span>
       </div>
-      <h2 id="entryModalTitle" class="modal-title">أهلاً بك مع عبدالمجيد</h2>
-      <p class="modal-desc">اكتب اسمك قبل بدء تحدي أشهر 10 كرتونات على القناة السعودية الأولى زمان</p>
-
-      <form id="entryForm" class="modal-form" autocomplete="off">
+      <h2 id="nameModalTitle" class="modal-title">أهلاً بك مع عبدالمجيد</h2>
+      <p id="nameModalDesc" class="modal-desc">اكتب اسمك أولاً للبدء</p>
+      <form id="nameForm" class="modal-form" autocomplete="off">
         <div>
           <label class="field-label" for="playerNameInput">
             <span>اسمك</span>
@@ -857,112 +980,410 @@
           </label>
           <input id="playerNameInput" class="modal-input" type="text" maxlength="40" placeholder="اكتب اسمك هنا..." required />
         </div>
-        <div id="entryError" class="form-error-msg" aria-live="polite"></div>
+        <div id="nameError" class="form-error-msg"></div>
+        <button id="nameSubmitBtn" type="submit" class="primary-btn">التالي</button>
+        <button type="button" id="cancelNameBtn" class="back-home-btn" style="justify-content:center; width:100%;">إلغاء</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- النافذة 2 (لتحدي الدول المشابهة لسويسرا فقط): دولة أحلامك + مدينة أحلامك -->
+  <div id="dreamModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="dreamModalTitle">
+    <div class="modal-card">
+      <h2 id="dreamModalTitle" class="modal-title">سؤال سريع قبل ما نبدأ 🌿</h2>
+      <p id="dreamModalDesc" class="modal-desc">شاركنا وجهة أحلامك ثم ابدأ تحدي أفضل 10 دول تشبه سويسرا بالخضرة والغابات</p>
+      <form id="dreamForm" class="modal-form" autocomplete="off">
+        <div>
+          <label class="field-label" for="dreamCountryInput">
+            <span>دولة أحلامك</span>
+            <span class="badge-req">مطلوب</span>
+          </label>
+          <input id="dreamCountryInput" class="modal-input" type="text" maxlength="40" placeholder="مثال: سويسرا، النرويج، النمسا..." required />
+        </div>
+        <div>
+          <label class="field-label" for="dreamCityInput">
+            <span>مدينة أحلامك</span>
+            <span class="badge-opt">اختياري</span>
+          </label>
+          <input id="dreamCityInput" class="modal-input" type="text" maxlength="40" placeholder="مثال: إنترلاكن، زيلامسي... (اختياري)" />
+        </div>
+        <div id="dreamError" class="form-error-msg"></div>
         <button type="submit" class="primary-btn">ابدأ اللعب</button>
-        <button type="button" id="cancelEntryBtn" class="back-home-btn" style="justify-content:center; width:100%;">إلغاء والعودة للرئيسية</button>
       </form>
     </div>
   </div>
 
   <script>
     (function () {
-      const MAX_MISTAKES = 5;
-      const MAX_HINTS = 2;
-      const FORMSPREE_ENDPOINT = "https://formspree.io/f/mnpdzwvo";
-      const CHALLENGE_TITLE = "أشهر 10 كرتونات على القناة السعودية الأولى زمان";
+      /* =========================================================================
+         1) كائن الإعدادات الرئيسي (CONFIG) — كل الإعدادات والألوان والأسماء البديلة
+         ========================================================================= */
+      const CONFIG = {
+        settings: {
+          worldAtlasUrl: "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json",
+          earthRadiusKm: 6371,
+          maxColorDistanceKm: 12500,
+          maxSuggestions: 3,
+          swissMaxMistakes: 5,
+          swissMaxStrongHints: 2,
+          storageKey: "abdulmajeed_hub_v3",
+          formspreeEndpoint: "https://formspree.io/f/mnpdzwvo"
+        },
+        colors: {
+          oceanLight: "#B8E1F6",
+          oceanLightEdge: "#8BC8EA",
+          oceanDark: "#1B3452",
+          oceanDarkEdge: "#112238",
+          landLight: "#D7D4CC",
+          landDark: "#433E54",
+          borderLight: "#9E998E",
+          borderDark: "#242031",
+          graticuleLight: "rgba(255, 255, 255, 0.35)",
+          graticuleDark: "rgba(255, 255, 255, 0.12)",
+          winnerFill: "#15803D",
+          winnerStroke: "#F5B82E",
+          closenessStops: [
+            { t: 0.00, color: "#7F1D1D" },
+            { t: 0.15, color: "#B91C1C" },
+            { t: 0.35, color: "#DC2626" },
+            { t: 0.58, color: "#F97316" },
+            { t: 0.80, color: "#FDBA74" },
+            { t: 1.00, color: "#FEF08A" }
+          ]
+        },
+        // الأسماء الشائعة والبديلة للدول في لعبة "اكتشف الدولة"
+        countryAliases: {
+          "امريكا": "الولايات المتحدة",
+          "الولايات المتحدة الامريكية": "الولايات المتحدة",
+          "اميركا": "الولايات المتحدة",
+          "بريطانيا": "المملكة المتحدة",
+          "انجلترا": "المملكة المتحدة",
+          "انكلترا": "المملكة المتحدة",
+          "الامارات": "الإمارات العربية المتحدة",
+          "دبي": "الإمارات العربية المتحدة",
+          "المملكة العربية السعودية": "السعودية",
+          "العربية السعودية": "السعودية",
+          "كوريا": ["كوريا الجنوبية", "كوريا الشمالية"],
+          "الكونغو": ["جمهورية الكونغو الديمقراطية", "جمهورية الكونغو"],
+          "غينيا": ["غينيا", "غينيا بيساو", "غينيا الاستوائية", "بابوا غينيا الجديدة"],
+          "الاراضي المنخفضة": "هولندا",
+          "تشيكيا": "التشيك",
+          "جمهورية التشيك": "التشيك",
+          "البوسنة": "البوسنة والهرسك",
+          "كوت ديفوار": "ساحل العاج",
+          "افريقيا الوسطى": "جمهورية أفريقيا الوسطى",
+          "الدومينيكان": "جمهورية الدومينيكان",
+          "مقدونيا": "مقدونيا الشمالية",
+          "سوازيلاند": "إسواتيني",
+          "بورما": "ميانمار",
+          "تيمور": "تيمور الشرقية",
+          "سلطنة عمان": "عُمان",
+          "عمان": "عُمان",
+          "الاردن": "الأردن",
+          "ايران": "إيران",
+          "المانيا": "ألمانيا",
+          "اسبانيا": "إسبانيا",
+          "ايطاليا": "إيطاليا",
+          "استراليا": "أستراليا",
+          "نيوزلندا": "نيوزيلندا",
+          "ايسلندا": "آيسلندا",
+          "الارجنتين": "الأرجنتين",
+          "ترينيداد": "ترينيداد وتوباغو"
+        }
+      };
 
-      const CARTOONS = [
+      /* =========================================================================
+         2) بيانات تحدي: أفضل 10 دول تشبه سويسرا بالخضرة والغابات
+            لكل دولة: تلميح بسيط (ظاهر بجانبها) + تلميح قوي جداً (لزر التلميحين)
+         ========================================================================= */
+      const SWISS_LIKE_COUNTRIES = [
         {
           rank: 1,
-          name: "النمر الوردي",
-          hint: "شخصية كرتونية صامتة ومضحكة بلون وردي شهير وموسيقى جاز لا تُنسى، يعاند رجلاً أبيض قصيراً بشارب.",
-          aliases: ["النمر الوردي", "نمر وردي", "بينك بانثر", "بنك بانثر", "pink panther", "the pink panther"]
+          name: "النمسا 🇦🇹",
+          plainName: "النمسا",
+          simpleHint: "جارة سويسرا الشرقية وتتقاسم معها جبال الألب",
+          strongHint: "تضم أشهر قريتين تشبهان سويسرا تماماً: «زيلامسي» و«هالشتات»، وعاصمتها فيينا وعلمها أحمر وأبيض وأحمر!",
+          aliases: ["النمسا", "نمسا", "النمسه", "austria"]
         },
         {
           rank: 2,
-          name: "آكل النمل",
-          hint: "مخلوق أزرق له خرطوم طويل يطارد دائماً نملة حمراء ذكية يحاول أكلها ويفشل كل مرة (كان يُعرض مع النمر الوردي).",
-          aliases: ["آكل النمل", "اكل النمل", "أكل النمل", "النملة واكل النمل", "النملة وآكل النمل", "النمل واكل النمل", "ant and the aardvark", "aardvark"]
+          name: "سلوفينيا 🇸🇮",
+          plainName: "سلوفينيا",
+          simpleHint: "دولة أوروبية صغيرة مشهورة ببحيرة خضراء وجزيرة بوسطها",
+          strongHint: "تُلقب بـ«سويسرا الاقتصادية» وتشتهر ببحيرة «بليد» الساحرة وجبال الألب الجوليانية، وتبدأ بحروف (سلو...)",
+          aliases: ["سلوفينيا", "سلوفنيا", "السلوفينيا", "slovenia"]
         },
         {
           rank: 3,
-          name: "المفتش",
-          hint: "محقق شرطة فرنسي غبي ومضحك بشارب ومعطف طويل ومعه مساعده دودو (كان يُعرض ضمن حلقات النمر الوردي).",
-          aliases: ["المفتش", "مفتش", "المفتش كلوزو", "المفتش كروزو", "the inspector", "inspector"]
+          name: "النرويج 🇳🇴",
+          plainName: "النرويج",
+          simpleHint: "دولة في شمال أوروبا تشتهر بالمضايق البحرية والشلالات",
+          strongHint: "بلد الفيوردات وجزر لوفوتين وقرية فلام الخضراء، عاصمتها أوسلو وتقع بجانب السويد!",
+          aliases: ["النرويج", "نرويج", "النوريج", "نوريج", "norway"]
         },
         {
           rank: 4,
-          name: "هايدي",
-          hint: "طفلة يتيمة لطيفة تعيش مع جدها في جبال الألب السويسرية الخضراء برفقة الراعي بيتر والماعز.",
-          aliases: ["هايدي", "هايدى", "heidi"]
+          name: "نيوزيلندا 🇳🇿",
+          plainName: "نيوزيلندا",
+          simpleHint: "جزيرتان في أقصى جنوب الأرض بمروج خضراء وجبال شاهقة",
+          strongHint: "صُوّرت فيها أفلام «سيد الخواتم» وتُلقب بـ«سويسرا الجنوب»، تقع قرب أستراليا وتبدأ بـ(نيو...)",
+          aliases: ["نيوزيلندا", "نيوزلندا", "نيوزيلند", "نيوزلند", "نيو زيلندا", "new zealand"]
         },
         {
           rank: 5,
-          name: "مغامرات سندباد",
-          hint: "بحّار بغدادي شجاع يسافر حول العالم ومعه الطائر المتكلم «ياسمينة» وعلي بابا والعم علاء الدين.",
-          aliases: ["مغامرات سندباد", "سندباد", "السندباد", "مغامرات السندباد", "sinbad", "sindbad"]
+          name: "كندا 🇨🇦",
+          plainName: "كندا",
+          simpleHint: "ثاني أكبر دولة في العالم وتشتهر بغاباتها وبحيراتها الفيروزية",
+          strongHint: "في أمريكا الشمالية وتضم منتزه «بانف» وبحيرة «لويز» وجبال الروكي، وعلمها به ورقة قيقب حمراء!",
+          aliases: ["كندا", "الكندا", "canada"]
         },
         {
           rank: 6,
-          name: "مغامرات الفضاء (جريندايزر)",
-          hint: "آلي فضائي عملاق يقوده «دايسكي» (دوق فليد) للدفاع عن كوكب الأرض ضد فيغا وأشرار الفضاء.",
-          aliases: [
-            "مغامرات الفضاء جريندايزر", "مغامرات الفضاء", "جريندايزر", "غريندايزر", "قريندايزر",
-            "جرندايزر", "غرندايزر", "قرندايزر", "كرندايزر", "grendizer", "ufo robot grendizer"
-          ]
+          name: "إيطاليا 🇮🇹",
+          plainName: "إيطاليا",
+          simpleHint: "جارة سويسرا الجنوبية وبها سلسلة جبال الدولوميت الخضراء",
+          strongHint: "بلد البيتزا والباستا وعاصمتها روما، وشمالها يضم جبال «الدولوميت» وبحيرة كومو التي تشبه سويسرا!",
+          aliases: ["إيطاليا", "ايطاليا", "أيطاليا", "ايطاليه", "italy"]
         },
         {
           rank: 7,
-          name: "لولو الصغيرة",
-          hint: "فتاة صغيرة مشاغبة ذات شعر مجعّد أسود وفستان أحمر، دائماً تفتعل المقالب مع صديقها «طبّوش».",
-          aliases: ["لولو الصغيرة", "لولو الصغيره", "لولو", "لولو وطبوش", "little lulu", "lulu"]
+          name: "فرنسا 🇫🇷",
+          plainName: "فرنسا",
+          simpleHint: "جارة سويسرا الغربية وتضم أعلى قمة في جبال الألب",
+          strongHint: "عاصمتها باريس وتضم مدينة «أنسي» ومنتجع «شامونيه» وجبل مون بلان على حدود سويسرا مباشرة!",
+          aliases: ["فرنسا", "الفرنسا", "فرنسه", "france"]
         },
         {
           rank: 8,
-          name: "الليث الأبيض",
-          hint: "شبل أسد لونه أبيض ناصع اسمه «كيمبا» يدافع عن حيوانات الغابة بشجاعة.",
-          aliases: ["الليث الأبيض", "الليث الابيض", "ليث ابيض", "ليث أبيض", "كيمبا", "kimba", "kimba the white lion"]
+          name: "ألمانيا 🇩🇪",
+          plainName: "ألمانيا",
+          simpleHint: "جارة سويسرا الشمالية وتشتهر بالغابة السوداء وجبال بافاريا",
+          strongHint: "بلد سيارات مرسيدس وBMW وعاصمتها برلين، وفي جنوبها «الغابة السوداء» وجبال الألب البافارية!",
+          aliases: ["ألمانيا", "المانيا", "إلمانيا", "المانيه", "germany"]
         },
         {
           rank: 9,
-          name: "توم وجيري",
-          hint: "أشهر مطاردة كوميدية في التاريخ بين قط رمادي وفأر بني صغير وذكي.",
-          aliases: ["توم وجيري", "توم و جيري", "توم وجيرى", "توم جيري", "القط والفار", "القط والفأر", "tom and jerry", "tom & jerry"]
+          name: "جورجيا 🇬🇪",
+          plainName: "جورجيا",
+          simpleHint: "دولة قوقازية محبوبة جداً لدى المسافرين العرب بخضرتها وجبالها",
+          strongHint: "تضم جبال القوقاز ومنطقة «كازبيجي» و«باتومي» و«سفانيتي»، وعاصمتها تبليسي!",
+          aliases: ["جورجيا", "الجورجيا", "جورجيه", "georgia"]
         },
         {
           rank: 10,
-          name: "مغامرات ماوكلي",
-          hint: "فتى الأدغال الذي ربّته الذئاب في الغابة مع صديقيه الدب «بالو» والنمر الأسود «باغيرا».",
-          aliases: ["مغامرات ماوكلي", "ماوكلي", "موكلي", "ماوكلى", "فتى الادغال", "فتى الأدغال", "ماوكلي فتى الادغال", "mowgli", "jungle book"]
+          name: "السويد 🇸🇪",
+          plainName: "السويد",
+          simpleHint: "دولة إسكندنافية تغطي الغابات أكثر من ثلثي مساحتها",
+          strongHint: "جارة النرويج الشرقية وعاصمتها ستوكهولم، وعلمها أزرق بصليب أصفر وتشتهر بشركة إيكيا!",
+          aliases: ["السويد", "سويد", "sweden"]
         }
       ];
 
-      // Silent background telemetry (completely invisible to player)
+      /* =========================================================================
+         3) قاموس دول العالم للعبة "اكتشف الدولة"
+         ========================================================================= */
+      const COUNTRIES_AR = {
+        "004": { name: "أفغانستان", continent: "آسيا" },
+        "008": { name: "ألبانيا", continent: "أوروبا" },
+        "012": { name: "الجزائر", continent: "أفريقيا" },
+        "024": { name: "أنغولا", continent: "أفريقيا" },
+        "031": { name: "أذربيجان", continent: "آسيا" },
+        "032": { name: "الأرجنتين", continent: "أمريكا الجنوبية" },
+        "036": { name: "أستراليا", continent: "أوقيانوسيا" },
+        "040": { name: "النمسا", continent: "أوروبا" },
+        "044": { name: "جزر البهاما", continent: "أمريكا الشمالية" },
+        "050": { name: "بنغلاديش", continent: "آسيا" },
+        "051": { name: "أرمينيا", continent: "آسيا" },
+        "056": { name: "بلجيكا", continent: "أوروبا" },
+        "064": { name: "بوتان", continent: "آسيا" },
+        "068": { name: "بوليفيا", continent: "أمريكا الجنوبية" },
+        "070": { name: "البوسنة والهرسك", continent: "أوروبا" },
+        "072": { name: "بوتسوانا", continent: "أفريقيا" },
+        "076": { name: "البرازيل", continent: "أمريكا الجنوبية" },
+        "084": { name: "بليز", continent: "أمريكا الشمالية" },
+        "090": { name: "جزر سليمان", continent: "أوقيانوسيا" },
+        "096": { name: "بروناي", continent: "آسيا" },
+        "100": { name: "بلغاريا", continent: "أوروبا" },
+        "104": { name: "ميانمار", continent: "آسيا" },
+        "108": { name: "بوروندي", continent: "أفريقيا" },
+        "112": { name: "بيلاروسيا", continent: "أوروبا" },
+        "116": { name: "كمبوديا", continent: "آسيا" },
+        "120": { name: "الكاميرون", continent: "أفريقيا" },
+        "124": { name: "كندا", continent: "أمريكا الشمالية" },
+        "140": { name: "جمهورية أفريقيا الوسطى", continent: "أفريقيا" },
+        "144": { name: "سريلانكا", continent: "آسيا" },
+        "148": { name: "تشاد", continent: "أفريقيا" },
+        "152": { name: "تشيلي", continent: "أمريكا الجنوبية" },
+        "156": { name: "الصين", continent: "آسيا" },
+        "158": { name: "تايوان", continent: "آسيا" },
+        "170": { name: "كولومبيا", continent: "أمريكا الجنوبية" },
+        "178": { name: "جمهورية الكونغو", continent: "أفريقيا" },
+        "180": { name: "جمهورية الكونغو الديمقراطية", continent: "أفريقيا" },
+        "188": { name: "كوستاريكا", continent: "أمريكا الشمالية" },
+        "191": { name: "كرواتيا", continent: "أوروبا" },
+        "192": { name: "كوبا", continent: "أمريكا الشمالية" },
+        "196": { name: "قبرص", continent: "أوروبا" },
+        "203": { name: "التشيك", continent: "أوروبا" },
+        "204": { name: "بنين", continent: "أفريقيا" },
+        "208": { name: "الدنمارك", continent: "أوروبا" },
+        "214": { name: "جمهورية الدومينيكان", continent: "أمريكا الشمالية" },
+        "218": { name: "الإكوادور", continent: "أمريكا الجنوبية" },
+        "222": { name: "السلفادور", continent: "أمريكا الشمالية" },
+        "226": { name: "غينيا الاستوائية", continent: "أفريقيا" },
+        "231": { name: "إثيوبيا", continent: "أفريقيا" },
+        "232": { name: "إريتريا", continent: "أفريقيا" },
+        "233": { name: "إستونيا", continent: "أوروبا" },
+        "242": { name: "فيجي", continent: "أوقيانوسيا" },
+        "246": { name: "فنلندا", continent: "أوروبا" },
+        "250": { name: "فرنسا", continent: "أوروبا" },
+        "262": { name: "جيبوتي", continent: "أفريقيا" },
+        "266": { name: "الغابون", continent: "أفريقيا" },
+        "268": { name: "جورجيا", continent: "آسيا" },
+        "270": { name: "غامبيا", continent: "أفريقيا" },
+        "275": { name: "فلسطين", continent: "آسيا" },
+        "276": { name: "ألمانيا", continent: "أوروبا" },
+        "288": { name: "غانا", continent: "أفريقيا" },
+        "300": { name: "اليونان", continent: "أوروبا" },
+        "304": { name: "غرينلاند", continent: "أمريكا الشمالية" },
+        "320": { name: "غواتيمالا", continent: "أمريكا الشمالية" },
+        "324": { name: "غينيا", continent: "أفريقيا" },
+        "328": { name: "غيانا", continent: "أمريكا الجنوبية" },
+        "332": { name: "هايتي", continent: "أمريكا الشمالية" },
+        "340": { name: "هندوراس", continent: "أمريكا الشمالية" },
+        "348": { name: "المجر", continent: "أوروبا" },
+        "352": { name: "آيسلندا", continent: "أوروبا" },
+        "356": { name: "الهند", continent: "آسيا" },
+        "360": { name: "إندونيسيا", continent: "آسيا" },
+        "364": { name: "إيران", continent: "آسيا" },
+        "368": { name: "العراق", continent: "آسيا" },
+        "372": { name: "أيرلندا", continent: "أوروبا" },
+        "380": { name: "إيطاليا", continent: "أوروبا" },
+        "384": { name: "ساحل العاج", continent: "أفريقيا" },
+        "388": { name: "جامايكا", continent: "أمريكا الشمالية" },
+        "392": { name: "اليابان", continent: "آسيا" },
+        "398": { name: "كازاخستان", continent: "آسيا" },
+        "400": { name: "الأردن", continent: "آسيا" },
+        "404": { name: "كينيا", continent: "أفريقيا" },
+        "408": { name: "كوريا الشمالية", continent: "آسيا" },
+        "410": { name: "كوريا الجنوبية", continent: "آسيا" },
+        "414": { name: "الكويت", continent: "آسيا" },
+        "417": { name: "قيرغيزستان", continent: "آسيا" },
+        "418": { name: "لاوس", continent: "آسيا" },
+        "422": { name: "لبنان", continent: "آسيا" },
+        "426": { name: "ليسوتو", continent: "أفريقيا" },
+        "428": { name: "لاتفيا", continent: "أوروبا" },
+        "430": { name: "ليبيريا", continent: "أفريقيا" },
+        "434": { name: "ليبيا", continent: "أفريقيا" },
+        "440": { name: "ليتوانيا", continent: "أوروبا" },
+        "442": { name: "لوكسمبورغ", continent: "أوروبا" },
+        "450": { name: "مدغشقر", continent: "أفريقيا" },
+        "454": { name: "مالاوي", continent: "أفريقيا" },
+        "458": { name: "ماليزيا", continent: "آسيا" },
+        "466": { name: "مالي", continent: "أفريقيا" },
+        "478": { name: "موريتانيا", continent: "أفريقيا" },
+        "484": { name: "المكسيك", continent: "أمريكا الشمالية" },
+        "496": { name: "منغوليا", continent: "آسيا" },
+        "498": { name: "مولدوفا", continent: "أوروبا" },
+        "499": { name: "الجبل الأسود", continent: "أوروبا" },
+        "504": { name: "المغرب", continent: "أفريقيا" },
+        "508": { name: "موزمبيق", continent: "أفريقيا" },
+        "512": { name: "عُمان", continent: "آسيا" },
+        "516": { name: "ناميبيا", continent: "أفريقيا" },
+        "524": { name: "نيبال", continent: "آسيا" },
+        "528": { name: "هولندا", continent: "أوروبا" },
+        "548": { name: "فانواتو", continent: "أوقيانوسيا" },
+        "554": { name: "نيوزيلندا", continent: "أوقيانوسيا" },
+        "558": { name: "نيكاراغوا", continent: "أمريكا الشمالية" },
+        "562": { name: "النيجر", continent: "أفريقيا" },
+        "566": { name: "نيجيريا", continent: "أفريقيا" },
+        "578": { name: "النرويج", continent: "أوروبا" },
+        "586": { name: "باكستان", continent: "آسيا" },
+        "591": { name: "بنما", continent: "أمريكا الشمالية" },
+        "598": { name: "بابوا غينيا الجديدة", continent: "أوقيانوسيا" },
+        "600": { name: "باراغواي", continent: "أمريكا الجنوبية" },
+        "604": { name: "بيرو", continent: "أمريكا الجنوبية" },
+        "608": { name: "الفلبين", continent: "آسيا" },
+        "616": { name: "بولندا", continent: "أوروبا" },
+        "620": { name: "البرتغال", continent: "أوروبا" },
+        "624": { name: "غينيا بيساو", continent: "أفريقيا" },
+        "626": { name: "تيمور الشرقية", continent: "آسيا" },
+        "634": { name: "قطر", continent: "آسيا" },
+        "642": { name: "رومانيا", continent: "أوروبا" },
+        "643": { name: "روسيا", continent: "أوروبا وآسيا" },
+        "646": { name: "رواندا", continent: "أفريقيا" },
+        "682": { name: "السعودية", continent: "آسيا" },
+        "686": { name: "السنغال", continent: "أفريقيا" },
+        "688": { name: "صربيا", continent: "أوروبا" },
+        "694": { name: "سيراليون", continent: "أفريقيا" },
+        "703": { name: "سلوفاكيا", continent: "أوروبا" },
+        "704": { name: "فيتنام", continent: "آسيا" },
+        "705": { name: "سلوفينيا", continent: "أوروبا" },
+        "706": { name: "الصومال", continent: "أفريقيا" },
+        "710": { name: "جنوب أفريقيا", continent: "أفريقيا" },
+        "716": { name: "زيمبابوي", continent: "أفريقيا" },
+        "724": { name: "إسبانيا", continent: "أوروبا" },
+        "728": { name: "جنوب السودان", continent: "أفريقيا" },
+        "729": { name: "السودان", continent: "أفريقيا" },
+        "732": { name: "الصحراء الغربية", continent: "أفريقيا" },
+        "740": { name: "سورينام", continent: "أمريكا الجنوبية" },
+        "748": { name: "إسواتيني", continent: "أفريقيا" },
+        "752": { name: "السويد", continent: "أوروبا" },
+        "756": { name: "سويسرا", continent: "أوروبا" },
+        "760": { name: "سوريا", continent: "آسيا" },
+        "762": { name: "طاجيكستان", continent: "آسيا" },
+        "764": { name: "تايلاند", continent: "آسيا" },
+        "768": { name: "توغو", continent: "أفريقيا" },
+        "780": { name: "ترينيداد وتوباغو", continent: "أمريكا الشمالية" },
+        "784": { name: "الإمارات العربية المتحدة", continent: "آسيا" },
+        "788": { name: "تونس", continent: "أفريقيا" },
+        "792": { name: "تركيا", continent: "آسيا وأوروبا" },
+        "795": { name: "تركمانستان", continent: "آسيا" },
+        "800": { name: "أوغندا", continent: "أفريقيا" },
+        "804": { name: "أوكرانيا", continent: "أوروبا" },
+        "807": { name: "مقدونيا الشمالية", continent: "أوروبا" },
+        "818": { name: "مصر", continent: "أفريقيا" },
+        "826": { name: "المملكة المتحدة", continent: "أوروبا" },
+        "834": { name: "تنزانيا", continent: "أفريقيا" },
+        "840": { name: "الولايات المتحدة", continent: "أمريكا الشمالية" },
+        "854": { name: "بوركينا فاسو", continent: "أفريقيا" },
+        "858": { name: "أوروغواي", continent: "أمريكا الجنوبية" },
+        "860": { name: "أوزبكستان", continent: "آسيا" },
+        "862": { name: "فنزويلا", continent: "أمريكا الجنوبية" },
+        "887": { name: "اليمن", continent: "آسيا" },
+        "894": { name: "زامبيا", continent: "أفريقيا" }
+      };
+
+      /* =========================================================================
+         4) التتبع الصامت في الخلفية (مرات الخروج والرجوع + الزيارات + الجهاز)
+         ========================================================================= */
+      let activeView = "hub"; // 'hub' | 'swiss' | 'globe'
+      let pendingLaunch = null; // 'swiss' | 'globe'
+      let playerName = "";
+      let dreamCountry = "";
+      let dreamCity = "";
+
       let visitCount = 1;
       let tabSwitchCount = 0;
       let totalAwayMs = 0;
       let awayStartedAt = null;
-      let deviceInfo = detectDevice();
+      const deviceInfo = (function () {
+        const ua = navigator.userAgent || "";
+        if (/iPhone/i.test(ua)) return "آيفون (iOS)";
+        if (/iPad/i.test(ua)) return "آيباد";
+        if (/Android/i.test(ua)) return "أندرويد";
+        if (/Macintosh/i.test(ua)) return "كمبيوتر (Mac)";
+        if (/Windows/i.test(ua)) return "كمبيوتر (Windows)";
+        return "متصفح";
+      })();
 
       try {
-        const prevVisits = parseInt(localStorage.getItem("abdulmajeed_hub_visits") || "0", 10);
-        visitCount = isNaN(prevVisits) ? 1 : prevVisits + 1;
+        const prevV = parseInt(localStorage.getItem("abdulmajeed_hub_visits") || "0", 10);
+        visitCount = isNaN(prevV) ? 1 : prevV + 1;
         localStorage.setItem("abdulmajeed_hub_visits", String(visitCount));
       } catch (e) {}
 
-      function detectDevice() {
-        const ua = navigator.userAgent || "";
-        if (/iPhone/i.test(ua)) return "آيفون (iOS)";
-        if (/iPad/i.test(ua)) return "آيباد (iPadOS)";
-        if (/Android/i.test(ua)) return "أندرويد";
-        if (/Macintosh|Mac OS X/i.test(ua)) return "كمبيوتر (Mac)";
-        if (/Windows/i.test(ua)) return "كمبيوتر (Windows)";
-        return "متصفح غير محدد";
-      }
-
-      // Silently count tab leaves & time spent outside the page during active gameplay
       document.addEventListener("visibilitychange", function () {
-        if (!inGame || status !== "playing") return;
+        if (activeView === "hub") return;
         if (document.hidden) {
           tabSwitchCount += 1;
           awayStartedAt = Date.now();
@@ -972,67 +1393,23 @@
         }
       });
 
-      // Game State
-      let inGame = false;
-      let playerName = "";
-      let sessionStartTime = null;
-      let foundRanks = new Set();
-      let hintedRanks = new Set();
-      let hintsUsed = 0;
-      let mistakes = 0;
-      let guessHistory = [];
-      let status = "playing"; // 'playing' | 'won' | 'lost'
-      let reportSent = false;
-      let soundEnabled = true;
-      let audioCtx = null;
-      let feedbackTimer = null;
+      function sendFormspree(payloadObj, isExit) {
+        if (!CONFIG.settings.formspreeEndpoint) return;
+        try {
+          fetch(CONFIG.settings.formspreeEndpoint, {
+            method: "POST",
+            keepalive: Boolean(isExit),
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+            body: JSON.stringify(payloadObj)
+          }).catch(function () {});
+        } catch (e) {}
+      }
 
-      // DOM elements
-      const backHomeBtn = document.getElementById("backHomeBtn");
-      const restartBtn = document.getElementById("restartBtn");
-      const hubView = document.getElementById("hubView");
-      const top10View = document.getElementById("top10View");
-      const playerChip = document.getElementById("playerChip");
-      const launchCartoonsBtn = document.getElementById("launchCartoonsBtn");
-
-      const suggestForm = document.getElementById("suggestForm");
-      const suggestInput = document.getElementById("suggestInput");
-      const suggestStatus = document.getElementById("suggestStatus");
-
-      const entryModal = document.getElementById("entryModal");
-      const entryForm = document.getElementById("entryForm");
-      const playerNameInput = document.getElementById("playerNameInput");
-      const entryError = document.getElementById("entryError");
-      const cancelEntryBtn = document.getElementById("cancelEntryBtn");
-
-      const guessForm = document.getElementById("guessForm");
-      const guessInput = document.getElementById("guessInput");
-      const guessBtn = document.getElementById("guessBtn");
-      const hintBtn = document.getElementById("hintBtn");
-      const hintBtnText = document.getElementById("hintBtnText");
-      const hintBox = document.getElementById("hintBox");
-      const hintBoxTitle = document.getElementById("hintBoxTitle");
-      const hintBoxBody = document.getElementById("hintBoxBody");
-      const feedbackPill = document.getElementById("feedbackPill");
-      const foundCounter = document.getElementById("foundCounter");
-      const progressFill = document.getElementById("progressFill");
-      const mistakesDots = document.getElementById("mistakesDots");
-      const endBanner = document.getElementById("endBanner");
-      const endTitle = document.getElementById("endTitle");
-      const endSubtitle = document.getElementById("endSubtitle");
-      const playAgainBtn = document.getElementById("playAgainBtn");
-      const slotsGrid = document.getElementById("slotsGrid");
-
-      const themeBtn = document.getElementById("themeBtn");
-      const moonIcon = document.getElementById("moonIcon");
-      const sunIcon = document.getElementById("sunIcon");
-      const soundBtn = document.getElementById("soundBtn");
-      const soundIconOn = document.getElementById("soundIconOn");
-      const soundIconOff = document.getElementById("soundIconOff");
-
-      // Fuzzy matching helpers
-      function normalizeText(raw) {
-        return raw
+      /* =========================================================================
+         5) أدوات اللغة العربية والمطابقة الذكية والصوت
+         ========================================================================= */
+      function normalizeArabic(text) {
+        return String(text || "")
           .trim()
           .toLowerCase()
           .replace(/[\u064B-\u065F\u0670\u0640]/g, "")
@@ -1047,74 +1424,197 @@
       function stripArticle(norm) {
         return norm
           .split(" ")
-          .map(function (w) {
-            return w.length > 3 && w.startsWith("ال") ? w.slice(2) : w;
-          })
+          .map(function (w) { return w.length > 3 && w.startsWith("ال") ? w.slice(2) : w; })
           .join(" ");
       }
 
       function levenshtein(a, b) {
-        const m = a.length;
-        const n = b.length;
-        if (!m) return n;
-        if (!n) return m;
-        const dp = Array.from({ length: m + 1 }, function (_, i) {
-          const row = new Array(n + 1).fill(0);
-          row[0] = i;
-          return row;
-        });
+        const m = a.length, n = b.length;
+        if (!m) return n; if (!n) return m;
+        const dp = Array.from({ length: m + 1 }, function (_, i) { const r = new Array(n + 1).fill(0); r[0] = i; return r; });
         for (let j = 0; j <= n; j++) dp[0][j] = j;
         for (let i = 1; i <= m; i++) {
           for (let j = 1; j <= n; j++) {
-            dp[i][j] = Math.min(
-              dp[i - 1][j] + 1,
-              dp[i][j - 1] + 1,
-              dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
-            );
+            dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
           }
         }
         return dp[m][n];
       }
 
-      function findCartoonMatch(userInput) {
-        const norm = normalizeText(userInput);
+      let soundEnabled = true;
+      let audioCtx = null;
+
+      function playSound(type) {
+        if (!soundEnabled) return;
+        try {
+          if (!audioCtx) { const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx) return; audioCtx = new Ctx(); }
+          if (audioCtx.state === "suspended") audioCtx.resume();
+          const now = audioCtx.currentTime;
+          if (type === "win") { [523.25, 659.25, 783.99, 1046.5].forEach(function (f, i) { tone(f, now + i * 0.09, 0.22, "sine", 0.14); }); }
+          else if (type === "correct" || type === "close") { tone(523.25, now, 0.11, "sine", 0.13); tone(659.25, now + 0.08, 0.15, "sine", 0.13); }
+          else if (type === "hint" || type === "guess") { tone(440, now, 0.11, "sine", 0.11); }
+          else if (type === "error") { tone(210, now, 0.14, "triangle", 0.14); }
+          else if (type === "lose") { [330, 293.66, 261.63, 220].forEach(function (f, i) { tone(f, now + i * 0.11, 0.22, "triangle", 0.12); }); }
+        } catch (e) {}
+      }
+
+      function tone(freq, start, dur, wave, peak) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = wave; osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.001, start);
+        gain.gain.exponentialRampToValueAtTime(peak, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(start); osc.stop(start + dur + 0.02);
+      }
+
+      /* =========================================================================
+         6) عناصر DOM العامة والتنقل بين الواجهات
+         ========================================================================= */
+      const backHomeBtn = document.getElementById("backHomeBtn");
+      const brandTitle = document.getElementById("brandTitle");
+      const brandSubtitle = document.getElementById("brandSubtitle");
+      const playerChip = document.getElementById("playerChip");
+
+      const hubView = document.getElementById("hubView");
+      const swissView = document.getElementById("swissView");
+      const globeView = document.getElementById("globeView");
+
+      const launchGlobeBtn = document.getElementById("launchGlobeBtn");
+      const launchSwissBtn = document.getElementById("launchSwissBtn");
+      const suggestForm = document.getElementById("suggestForm");
+      const suggestInput = document.getElementById("suggestInput");
+      const suggestStatus = document.getElementById("suggestStatus");
+
+      const nameModal = document.getElementById("nameModal");
+      const nameModalDesc = document.getElementById("nameModalDesc");
+      const nameForm = document.getElementById("nameForm");
+      const playerNameInput = document.getElementById("playerNameInput");
+      const nameError = document.getElementById("nameError");
+      const nameSubmitBtn = document.getElementById("nameSubmitBtn");
+      const cancelNameBtn = document.getElementById("cancelNameBtn");
+
+      const dreamModal = document.getElementById("dreamModal");
+      const dreamForm = document.getElementById("dreamForm");
+      const dreamCountryInput = document.getElementById("dreamCountryInput");
+      const dreamCityInput = document.getElementById("dreamCityInput");
+      const dreamError = document.getElementById("dreamError");
+
+      const themeBtn = document.getElementById("themeBtn");
+      const moonIcon = document.getElementById("moonIcon");
+      const sunIcon = document.getElementById("sunIcon");
+      const soundBtn = document.getElementById("soundBtn");
+      const soundIconOn = document.getElementById("soundIconOn");
+      const soundIconOff = document.getElementById("soundIconOff");
+
+      function updateHeaderForView(viewName) {
+        if (viewName === "globe") {
+          brandTitle.innerHTML = '<span class="brand-word">اكتشف</span><span class="brand-highlight">الدولة</span>';
+          brandSubtitle.textContent = "مع عبدالمجيد";
+        } else if (viewName === "swiss") {
+          brandTitle.innerHTML = '<span class="brand-word">توب</span><span class="brand-highlight">10</span>';
+          brandSubtitle.textContent = "مع عبدالمجيد";
+        } else {
+          brandTitle.innerHTML = '<span class="brand-word">تحديات</span><span class="brand-highlight">عبدالمجيد</span>';
+          brandSubtitle.textContent = "بوابة التحديات التفاعلية";
+        }
+      }
+
+      function showView(viewName) {
+        activeView = viewName;
+        hubView.classList.toggle("hidden-view", viewName !== "hub");
+        swissView.classList.toggle("hidden-view", viewName !== "swiss");
+        globeView.classList.toggle("hidden-view", viewName !== "globe");
+        backHomeBtn.classList.toggle("hidden-view", viewName === "hub");
+        updateHeaderForView(viewName);
+
+        if (viewName === "hub") {
+          playerChip.classList.remove("visible");
+        } else if (viewName === "globe") {
+          playerChip.textContent = "اللاعب: " + playerName;
+          playerChip.classList.add("visible");
+          ensureGlobeLoaded();
+          setTimeout(resizeCanvas, 50);
+        } else if (viewName === "swiss") {
+          let chip = "اللاعب: " + playerName + " • دولة أحلامه: " + dreamCountry;
+          if (dreamCity) chip += " (" + dreamCity + ")";
+          playerChip.textContent = chip;
+          playerChip.classList.add("visible");
+        }
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      /* =========================================================================
+         7) منطق تحدي: أفضل 10 دول تشبه سويسرا بالخضرة والغابات
+         ========================================================================= */
+      const swissGuessForm = document.getElementById("swissGuessForm");
+      const swissGuessInput = document.getElementById("swissGuessInput");
+      const swissGuessBtn = document.getElementById("swissGuessBtn");
+      const swissHintBtn = document.getElementById("swissHintBtn");
+      const swissHintBtnText = document.getElementById("swissHintBtnText");
+      const swissHintBox = document.getElementById("swissHintBox");
+      const swissHintBoxTitle = document.getElementById("swissHintBoxTitle");
+      const swissHintBoxBody = document.getElementById("swissHintBoxBody");
+      const swissFeedbackPill = document.getElementById("swissFeedbackPill");
+      const swissFoundCounter = document.getElementById("swissFoundCounter");
+      const swissProgressFill = document.getElementById("swissProgressFill");
+      const swissMistakesDots = document.getElementById("swissMistakesDots");
+      const swissEndBanner = document.getElementById("swissEndBanner");
+      const swissEndTitle = document.getElementById("swissEndTitle");
+      const swissEndSubtitle = document.getElementById("swissEndSubtitle");
+      const swissPlayAgainBtn = document.getElementById("swissPlayAgainBtn");
+      const swissSlotsGrid = document.getElementById("swissSlotsGrid");
+
+      let swissState = {
+        foundRanks: new Set(),
+        hintedRanks: new Set(),
+        hintsUsed: 0,
+        mistakes: 0,
+        guesses: [],
+        status: "playing",
+        startTime: null,
+        reportSent: false
+      };
+      let swissFeedbackTimer = null;
+
+      function showSwissFeedback(msg, type) {
+        if (swissFeedbackTimer) clearTimeout(swissFeedbackTimer);
+        swissFeedbackPill.textContent = msg;
+        swissFeedbackPill.className = "feedback-pill visible " + type;
+        swissFeedbackTimer = setTimeout(function () { swissFeedbackPill.classList.remove("visible"); }, 2800);
+      }
+
+      function findSwissMatch(raw) {
+        const norm = normalizeArabic(raw);
         if (!norm) return null;
         const stripped = stripArticle(norm);
-        const candidates = norm === stripped ? [norm] : [norm, stripped];
+        const cands = norm === stripped ? [norm] : [norm, stripped];
 
-        // 1. Exact alias match
-        for (let i = 0; i < CARTOONS.length; i++) {
-          const item = CARTOONS[i];
+        for (let i = 0; i < SWISS_LIKE_COUNTRIES.length; i++) {
+          const item = SWISS_LIKE_COUNTRIES[i];
           for (let a = 0; a < item.aliases.length; a++) {
-            const na = normalizeText(item.aliases[a]);
+            const na = normalizeArabic(item.aliases[a]);
             const sa = stripArticle(na);
-            if (norm === na || norm === sa || stripped === na || stripped === sa) {
-              return item;
-            }
+            if (norm === na || norm === sa || stripped === na || stripped === sa) return item;
           }
         }
 
-        // 2. Fuzzy typo-tolerant match
-        let best = null;
-        let bestDist = Infinity;
-        for (let i = 0; i < CARTOONS.length; i++) {
-          const item = CARTOONS[i];
+        let best = null, bestDist = Infinity;
+        for (let i = 0; i < SWISS_LIKE_COUNTRIES.length; i++) {
+          const item = SWISS_LIKE_COUNTRIES[i];
           for (let a = 0; a < item.aliases.length; a++) {
-            const na = normalizeText(item.aliases[a]);
+            const na = normalizeArabic(item.aliases[a]);
             const sa = stripArticle(na);
-            const variants = na === sa ? [na] : [na, sa];
-            for (let v = 0; v < variants.length; v++) {
-              const alias = variants[v];
+            const vars = na === sa ? [na] : [na, sa];
+            for (let v = 0; v < vars.length; v++) {
+              const alias = vars[v];
               if (alias.length < 4) continue;
-              const maxDist = alias.length <= 5 ? 1 : alias.length <= 9 ? 2 : 3;
-              for (let c = 0; c < candidates.length; c++) {
-                const cand = candidates[c];
-                if (cand.length < 3 || Math.abs(cand.length - alias.length) > maxDist) continue;
-                const d = levenshtein(cand, alias);
-                if (d <= maxDist && d < bestDist) {
-                  bestDist = d;
-                  best = item;
-                }
+              const maxD = alias.length <= 5 ? 1 : 2;
+              for (let c = 0; c < cands.length; c++) {
+                if (cands[c].length < 3 || Math.abs(cands[c].length - alias.length) > maxD) continue;
+                const d = levenshtein(cands[c], alias);
+                if (d <= maxD && d < bestDist) { bestDist = d; best = item; }
               }
             }
           }
@@ -1122,167 +1622,67 @@
         return best;
       }
 
-      // Sound effects
-      function playSound(type) {
-        if (!soundEnabled) return;
-        try {
-          if (!audioCtx) {
-            const Ctx = window.AudioContext || window.webkitAudioContext;
-            if (!Ctx) return;
-            audioCtx = new Ctx();
-          }
-          if (audioCtx.state === "suspended") audioCtx.resume();
-          const now = audioCtx.currentTime;
-          if (type === "correct") {
-            tone(523.25, now, 0.11, "sine", 0.14);
-            tone(659.25, now + 0.08, 0.16, "sine", 0.14);
-          } else if (type === "hint") {
-            tone(440, now, 0.11, "sine", 0.12);
-            tone(493.88, now + 0.09, 0.13, "sine", 0.12);
-          } else if (type === "wrong") {
-            tone(220, now, 0.12, "triangle", 0.15);
-            tone(175, now + 0.09, 0.18, "triangle", 0.13);
-          } else if (type === "win") {
-            [523.25, 659.25, 783.99, 1046.5].forEach(function (f, i) {
-              tone(f, now + i * 0.09, 0.22, "sine", 0.14);
-            });
-          } else if (type === "lose") {
-            [330, 293.66, 261.63, 220].forEach(function (f, i) {
-              tone(f, now + i * 0.11, 0.22, "triangle", 0.12);
-            });
-          }
-        } catch (e) {}
-      }
-
-      function tone(freq, start, dur, wave, peak) {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = wave;
-        osc.frequency.setValueAtTime(freq, start);
-        gain.gain.setValueAtTime(0.001, start);
-        gain.gain.exponentialRampToValueAtTime(peak, start + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start(start);
-        osc.stop(start + dur + 0.02);
-      }
-
-      // Silent Formspree Report
-      function sendFormspree(payloadObj, isExit) {
-        if (!FORMSPREE_ENDPOINT) return;
-        try {
-          fetch(FORMSPREE_ENDPOINT, {
-            method: "POST",
-            keepalive: Boolean(isExit),
-            headers: {
-              "Content-Type": "application/json",
-              "Accept": "application/json"
-            },
-            body: JSON.stringify(payloadObj)
-          }).catch(function () {});
-        } catch (e) {}
-      }
-
-      function sendGameReport(eventType, isExit) {
+      function sendSwissReport(eventLabel, isExit) {
         if (!playerName) return;
-        if (awayStartedAt) {
-          totalAwayMs += Date.now() - awayStartedAt;
-          awayStartedAt = null;
-        }
-        const durationSec = sessionStartTime
-          ? Math.max(1, Math.round((Date.now() - sessionStartTime) / 1000))
-          : 0;
+        const durSec = swissState.startTime ? Math.max(1, Math.round((Date.now() - swissState.startTime) / 1000)) : 0;
         const awaySec = Math.round(totalAwayMs / 1000);
-
         sendFormspree({
-          _subject: "تحدي كرتونات زمان — " + playerName + " (" + eventType + ")",
+          _subject: "تحدي دول تشبه سويسرا — " + playerName + " (" + eventLabel + ")",
           الوقت: new Date().toLocaleString("ar-SA"),
-          التحدي: CHALLENGE_TITLE,
-          الحدث: eventType,
+          الحدث: eventLabel,
           اسم_اللاعب: playerName,
-          النتيجة: foundRanks.size + " / 10",
-          الأخطاء: mistakes + " / " + MAX_MISTAKES,
-          التلميحات_المستخدمة: hintsUsed + " / " + MAX_HINTS,
-          مرات_الخروج_والرجوع_أثناء_اللعب: tabSwitchCount + " مرة",
-          مدة_الغياب_خارج_الصفحة: awaySec + " ثانية",
-          عدد_زيارات_هذا_المتصفح: visitCount,
+          دولة_الأحلام: dreamCountry,
+          مدينة_الأحلام: dreamCity || "لم يكتبها (اختياري)",
+          النتيجة: swissState.foundRanks.size + " / 10",
+          الأخطاء: swissState.mistakes + " / " + CONFIG.settings.swissMaxMistakes,
+          التلميحات_القوية: swissState.hintsUsed + " / " + CONFIG.settings.swissMaxStrongHints,
+          مرات_الخروج_والرجوع: tabSwitchCount + " مرة",
+          مدة_الغياب: awaySec + " ثانية",
+          عدد_زيارات_المتصفح: visitCount,
           نوع_الجهاز: deviceInfo,
-          مدة_الجولة: durationSec + " ثانية",
-          الإجابات: guessHistory.length ? guessHistory.join(" | ") : "لم يكتب إجابات"
+          المدة: durSec + " ثانية",
+          الإجابات: swissState.guesses.join(" | ")
         }, isExit);
       }
 
-      // UI helpers
-      function showView(viewName) {
-        const isHub = viewName === "hub";
-        inGame = !isHub;
-        hubView.classList.toggle("hidden-view", !isHub);
-        top10View.classList.toggle("hidden-view", isHub);
-        backHomeBtn.classList.toggle("hidden-view", isHub);
-        restartBtn.classList.toggle("hidden-view", isHub);
-        if (isHub) playerChip.classList.remove("visible");
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
+      function renderSwissGame() {
+        const count = swissState.foundRanks.size;
+        const isOver = swissState.status !== "playing";
 
-      function showFeedback(msg, type) {
-        if (feedbackTimer) clearTimeout(feedbackTimer);
-        feedbackPill.textContent = msg;
-        feedbackPill.className = "feedback-pill visible " + type;
-        feedbackTimer = setTimeout(function () {
-          feedbackPill.classList.remove("visible");
-        }, 2800);
-      }
+        swissFoundCounter.textContent = "وجدت " + count + " من 10";
+        swissProgressFill.style.width = (count / 10) * 100 + "%";
 
-      function shakeForm() {
-        guessForm.classList.remove("shake");
-        void guessForm.offsetWidth;
-        guessForm.classList.add("shake");
-      }
-
-      function renderDots() {
-        mistakesDots.innerHTML = "";
-        for (let i = 0; i < MAX_MISTAKES; i++) {
+        swissMistakesDots.innerHTML = "";
+        for (let i = 0; i < CONFIG.settings.swissMaxMistakes; i++) {
           const dot = document.createElement("span");
-          dot.className = "mistake-circle" + (i < mistakes ? " used" : "");
-          const x = document.createElement("span");
-          x.className = "x-mark";
-          x.textContent = "✕";
+          dot.className = "mistake-circle" + (i < swissState.mistakes ? " used" : "");
+          const x = document.createElement("span"); x.className = "x-mark"; x.textContent = "✕";
           dot.appendChild(x);
-          mistakesDots.appendChild(dot);
+          swissMistakesDots.appendChild(dot);
         }
-      }
 
-      function renderGame() {
-        const count = foundRanks.size;
-        foundCounter.textContent = "وجدت " + count + " من 10";
-        progressFill.style.width = (count / 10) * 100 + "%";
-        renderDots();
+        const remH = CONFIG.settings.swissMaxStrongHints - swissState.hintsUsed;
+        swissHintBtn.disabled = !(!isOver && remH > 0 && count < 10);
+        swissHintBtnText.textContent = remH > 0 ? "تلميح قوي جداً (" + remH + " متبقي)" : "انتهت التلميحات القوية (0 متبقي)";
 
-        const remHints = MAX_HINTS - hintsUsed;
-        hintBtn.disabled = !(status === "playing" && remHints > 0 && count < 10);
-        hintBtnText.textContent =
-          remHints > 0 ? "تلميح قوي (" + remHints + " متبقي)" : "انتهت التلميحات (0 متبقي)";
+        swissGuessInput.disabled = isOver;
+        swissGuessBtn.disabled = isOver;
 
-        const isOver = status !== "playing";
-        guessInput.disabled = isOver;
-        guessBtn.disabled = isOver;
-
-        if (status === "won") {
-          endBanner.className = "end-banner show won";
-          endTitle.textContent = "مبروك! أكملت قائمة كرتونات الزمن الجميل بالكامل 🎉";
-          endSubtitle.textContent = "وجدت جميع الكرتونات الـ 10 مع " + mistakes + " من أصل 5 أخطاء.";
-        } else if (status === "lost") {
-          endBanner.className = "end-banner show lost";
-          endTitle.textContent = "انتهت المحاولات الخمس! تم كشف جميع الإجابات الـ 10";
-          endSubtitle.textContent = "نتيجتك: وجدت " + count + " من 10 كرتونات — اطّلع على القائمة الكاملة بالأسفل.";
+        if (swissState.status === "won") {
+          swissEndBanner.className = "end-banner show won";
+          swissEndTitle.textContent = "مبروك! أكملت قائمة الدول المشابهة لسويسرا بالكامل 🎉";
+          swissEndSubtitle.textContent = "وجدت جميع الدول الـ 10 مع " + swissState.mistakes + " من أصل 5 أخطاء.";
+        } else if (swissState.status === "lost") {
+          swissEndBanner.className = "end-banner show lost";
+          swissEndTitle.textContent = "انتهت المحاولات الخمس! تم كشف جميع الإجابات الـ 10";
+          swissEndSubtitle.textContent = "نتيجتك: وجدت " + count + " من 10 دول — اطّلع على القائمة الكاملة بالأسفل.";
         } else {
-          endBanner.className = "end-banner";
+          swissEndBanner.className = "end-banner";
         }
 
-        slotsGrid.innerHTML = "";
-        CARTOONS.forEach(function (item) {
-          const isFound = foundRanks.has(item.rank);
+        swissSlotsGrid.innerHTML = "";
+        SWISS_LIKE_COUNTRIES.forEach(function (item) {
+          const isFound = swissState.foundRanks.has(item.rank);
           const isMissed = !isFound && isOver;
 
           const card = document.createElement("div");
@@ -1310,6 +1710,12 @@
             content.appendChild(ph);
           }
 
+          // التلميح البسيط الظاهر بجانب كل دولة من الـ 10
+          const simpleH = document.createElement("div");
+          simpleH.className = "slot-simple-hint";
+          simpleH.textContent = "تلميح: " + item.simpleHint;
+          content.appendChild(simpleH);
+
           main.appendChild(badge);
           main.appendChild(content);
           card.appendChild(main);
@@ -1321,164 +1727,824 @@
             card.appendChild(tag);
           }
 
-          slotsGrid.appendChild(card);
+          swissSlotsGrid.appendChild(card);
         });
       }
 
-      function startNewRound() {
-        foundRanks = new Set();
-        hintedRanks = new Set();
-        hintsUsed = 0;
-        mistakes = 0;
-        guessHistory = [];
-        status = "playing";
-        reportSent = false;
+      function startSwissGame() {
+        swissState = {
+          foundRanks: new Set(),
+          hintedRanks: new Set(),
+          hintsUsed: 0,
+          mistakes: 0,
+          guesses: [],
+          status: "playing",
+          startTime: Date.now(),
+          reportSent: false
+        };
         tabSwitchCount = 0;
         totalAwayMs = 0;
         awayStartedAt = null;
-        sessionStartTime = Date.now();
-
-        guessInput.value = "";
-        hintBox.classList.remove("show");
-        feedbackPill.className = "feedback-pill";
-        feedbackPill.textContent = "";
-
-        playerChip.textContent = "اللاعب: " + playerName;
-        playerChip.classList.add("visible");
-
-        renderGame();
-        showView("top10");
-        guessInput.focus();
+        swissGuessInput.value = "";
+        swissHintBox.classList.remove("show");
+        swissFeedbackPill.className = "feedback-pill";
+        swissFeedbackPill.textContent = "";
+        renderSwissGame();
+        showView("swiss");
+        swissGuessInput.focus();
       }
 
-      // Event Handlers
-      launchCartoonsBtn.addEventListener("click", function () {
-        entryError.textContent = "";
-        playerNameInput.value = playerName || "";
-        entryModal.classList.remove("hidden");
-        playerNameInput.focus();
-      });
-
-      cancelEntryBtn.addEventListener("click", function () {
-        entryModal.classList.add("hidden");
-      });
-
-      entryForm.addEventListener("submit", function (e) {
+      swissGuessForm.addEventListener("submit", function (e) {
         e.preventDefault();
-        const nm = playerNameInput.value.trim();
-        if (!nm) {
-          entryError.textContent = "يرجى كتابة اسمك أولاً";
-          playerNameInput.focus();
-          return;
-        }
-        playerName = nm;
-        entryError.textContent = "";
-        entryModal.classList.add("hidden");
-        startNewRound();
-      });
-
-      guessForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        if (status !== "playing") return;
-        const raw = guessInput.value.trim();
+        if (swissState.status !== "playing") return;
+        const raw = swissGuessInput.value.trim();
         if (!raw) {
-          shakeForm();
-          showFeedback("اكتب اسم الكرتون أولاً", "info");
-          guessInput.focus();
+          swissGuessForm.classList.remove("shake"); void swissGuessForm.offsetWidth; swissGuessForm.classList.add("shake");
+          showSwissFeedback("اكتب اسم الدولة أولاً", "info");
           return;
         }
-
-        const matched = findCartoonMatch(raw);
-        guessInput.value = "";
+        const matched = findSwissMatch(raw);
+        swissGuessInput.value = "";
 
         if (matched) {
-          if (foundRanks.has(matched.rank)) {
-            showFeedback("سبق وأن خمّنت «" + matched.name + "»!", "info");
-            guessInput.focus();
+          if (swissState.foundRanks.has(matched.rank)) {
+            showSwissFeedback("سبق وأن خمّنت «" + matched.plainName + "»!", "info");
             return;
           }
-          foundRanks.add(matched.rank);
-          guessHistory.push("✓ " + matched.name);
-          if (foundRanks.size === 10) {
-            status = "won";
+          swissState.foundRanks.add(matched.rank);
+          swissState.guesses.push("✓ " + matched.plainName);
+          if (swissState.foundRanks.size === 10) {
+            swissState.status = "won";
             playSound("win");
-            showFeedback("أسطوري! أكملت القائمة كاملة", "success");
-            if (!reportSent) {
-              reportSent = true;
-              sendGameReport("فوز كامل (10/10)", false);
-            }
+            showSwissFeedback("أسطوري! أكملت القائمة بالكامل", "success");
+            if (!swissState.reportSent) { swissState.reportSent = true; sendSwissReport("فوز (10/10)", false); }
           } else {
             playSound("correct");
-            showFeedback("إجابة صحيحة! #" + matched.rank + " — " + matched.name, "success");
+            showSwissFeedback("إجابة صحيحة! #" + matched.rank + " — " + matched.name, "success");
           }
         } else {
-          mistakes += 1;
-          guessHistory.push("✕ " + raw);
-          shakeForm();
-          if (mistakes >= MAX_MISTAKES) {
-            status = "lost";
+          swissState.mistakes += 1;
+          swissState.guesses.push("✕ " + raw);
+          swissGuessForm.classList.remove("shake"); void swissGuessForm.offsetWidth; swissGuessForm.classList.add("shake");
+          if (swissState.mistakes >= CONFIG.settings.swissMaxMistakes) {
+            swissState.status = "lost";
             playSound("lose");
-            showFeedback("انتهت المحاولات الخمس! تم كشف جميع الإجابات العشر", "error");
-            if (!reportSent) {
-              reportSent = true;
-              sendGameReport("انتهت المحاولات الخمس", false);
-            }
+            showSwissFeedback("انتهت المحاولات الخمس! تم كشف جميع الإجابات الـ 10", "error");
+            if (!swissState.reportSent) { swissState.reportSent = true; sendSwissReport("انتهت المحاولات", false); }
           } else {
-            playSound("wrong");
-            const rem = MAX_MISTAKES - mistakes;
-            showFeedback(
-              "إجابة خاطئة! تبقى لديك " + rem + (rem === 1 ? " محاولة" : " محاولات"),
-              "error"
-            );
+            playSound("error");
+            const rem = CONFIG.settings.swissMaxMistakes - swissState.mistakes;
+            showSwissFeedback("إجابة خاطئة! تبقى لديك " + rem + (rem === 1 ? " محاولة" : " محاولات"), "error");
           }
         }
-
-        renderGame();
-        if (status === "playing") guessInput.focus();
+        renderSwissGame();
+        if (swissState.status === "playing") swissGuessInput.focus();
       });
 
-      hintBtn.addEventListener("click", function () {
-        if (status !== "playing" || hintsUsed >= MAX_HINTS) return;
+      swissHintBtn.addEventListener("click", function () {
+        if (swissState.status !== "playing" || swissState.hintsUsed >= CONFIG.settings.swissMaxStrongHints) return;
         let target = null;
-        for (let i = 0; i < CARTOONS.length; i++) {
-          if (!foundRanks.has(CARTOONS[i].rank) && !hintedRanks.has(CARTOONS[i].rank)) {
-            target = CARTOONS[i];
-            break;
+        for (let i = 0; i < SWISS_LIKE_COUNTRIES.length; i++) {
+          if (!swissState.foundRanks.has(SWISS_LIKE_COUNTRIES[i].rank) && !swissState.hintedRanks.has(SWISS_LIKE_COUNTRIES[i].rank)) {
+            target = SWISS_LIKE_COUNTRIES[i]; break;
           }
         }
         if (!target) {
-          for (let i = 0; i < CARTOONS.length; i++) {
-            if (!foundRanks.has(CARTOONS[i].rank)) {
-              target = CARTOONS[i];
-              break;
-            }
+          for (let i = 0; i < SWISS_LIKE_COUNTRIES.length; i++) {
+            if (!swissState.foundRanks.has(SWISS_LIKE_COUNTRIES[i].rank)) { target = SWISS_LIKE_COUNTRIES[i]; break; }
           }
         }
         if (!target) return;
-
-        hintsUsed += 1;
-        hintedRanks.add(target.rank);
-        hintBoxTitle.textContent = "💡 تلميح قوي للمركز رقم (" + target.rank + "):";
-        hintBoxBody.textContent = target.hint;
-        hintBox.classList.add("show");
+        swissState.hintsUsed += 1;
+        swissState.hintedRanks.add(target.rank);
+        swissHintBoxTitle.textContent = "💡 تلميح قوي جداً للمركز رقم (" + target.rank + "):";
+        swissHintBoxBody.textContent = target.strongHint;
+        swissHintBox.classList.add("show");
         playSound("hint");
-        renderGame();
-        guessInput.focus();
+        renderSwissGame();
+        swissGuessInput.focus();
       });
 
-      function goHome() {
-        if (inGame && playerName && !reportSent && (guessHistory.length > 0 || tabSwitchCount > 0)) {
-          reportSent = true;
-          sendGameReport("عاد للرئيسية قبل الإكمال", false);
-        }
-        showView("hub");
+      swissPlayAgainBtn.addEventListener("click", startSwissGame);
+
+      /* =========================================================================
+         8) منطق لعبة: اكتشف الدولة مع عبدالمجيد (الكرة 3D + أسماء الدول الواضحة)
+         ========================================================================= */
+      const globeStage = document.getElementById("globeStage");
+      const globeCanvas = document.getElementById("globeCanvas");
+      const ctx = globeCanvas.getContext("2d");
+      const globeLoading = document.getElementById("globeLoading");
+      const globeLoadingText = document.getElementById("globeLoadingText");
+      const zoomInBtn = document.getElementById("zoomInBtn");
+      const zoomOutBtn = document.getElementById("zoomOutBtn");
+
+      const guessCountVal = document.getElementById("guessCountVal");
+      const gamesPlayedVal = document.getElementById("gamesPlayedVal");
+      const winsVal = document.getElementById("winsVal");
+      const avgGuessesVal = document.getElementById("avgGuessesVal");
+
+      const globeGuessForm = document.getElementById("globeGuessForm");
+      const globeGuessInput = document.getElementById("globeGuessInput");
+      const globeGuessBtn = document.getElementById("globeGuessBtn");
+      const didYouMeanBox = document.getElementById("didYouMeanBox");
+      const globeFeedbackPill = document.getElementById("globeFeedbackPill");
+      const continentBanner = document.getElementById("continentBanner");
+      const continentBtn = document.getElementById("continentBtn");
+      const giveUpBtn = document.getElementById("giveUpBtn");
+      const newGameBtn = document.getElementById("newGameBtn");
+      const globeResultBanner = document.getElementById("globeResultBanner");
+      const globeResultTitle = document.getElementById("globeResultTitle");
+      const globeResultDesc = document.getElementById("globeResultDesc");
+      const globePlayAgainBtn = document.getElementById("globePlayAgainBtn");
+      const guessesList = document.getElementById("guessesList");
+
+      let globeLoaded = false;
+      let globeLoadingStarted = false;
+      let allFeatures = [];
+      let playableCountries = [];
+      let countryById = new Map();
+      let countryByNormName = new Map();
+      let neighborMap = new Map();
+      let normalizedAliasEntries = [];
+
+      let globeState = {
+        mysteryId: null,
+        guesses: [],
+        continentRevealed: false,
+        status: "playing",
+        stats: { gamesPlayed: 0, wins: 0, totalGuessesOnWins: 0 }
+      };
+
+      let projection = d3.geoOrthographic().clipAngle(90).precision(0.4);
+      let baseScale = 180;
+      let zoomFactor = 1;
+      let currentRotation = [-45, -24, 0];
+      let animFrameId = null;
+      let globeFeedbackTimer = null;
+
+      function saveHubStorage() {
+        try {
+          localStorage.setItem(CONFIG.settings.storageKey, JSON.stringify({
+            playerName: playerName,
+            globeState: globeState
+          }));
+        } catch (e) {}
       }
 
-      backHomeBtn.addEventListener("click", goHome);
-      restartBtn.addEventListener("click", startNewRound);
-      playAgainBtn.addEventListener("click", startNewRound);
+      function loadHubStorage() {
+        try {
+          const raw = localStorage.getItem(CONFIG.settings.storageKey);
+          if (!raw) return;
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === "object") {
+            if (typeof parsed.playerName === "string") playerName = parsed.playerName;
+            if (parsed.globeState) {
+              const gs = parsed.globeState;
+              if (gs.stats) {
+                globeState.stats.gamesPlayed = Number(gs.stats.gamesPlayed) || 0;
+                globeState.stats.wins = Number(gs.stats.wins) || 0;
+                globeState.stats.totalGuessesOnWins = Number(gs.stats.totalGuessesOnWins) || 0;
+              }
+              if (gs.mysteryId && countryById.has(gs.mysteryId)) {
+                globeState.mysteryId = gs.mysteryId;
+                globeState.guesses = Array.isArray(gs.guesses) ? gs.guesses : [];
+                globeState.continentRevealed = Boolean(gs.continentRevealed);
+                globeState.status = gs.status || "playing";
+              }
+            }
+          }
+        } catch (e) {}
+      }
 
-      // Visitor Suggestion Box
+      function buildGlobeSearchIndex() {
+        countryByNormName.clear();
+        normalizedAliasEntries = [];
+        playableCountries.forEach(function (c) {
+          countryByNormName.set(c.normName, c);
+          countryByNormName.set(c.strippedName, c);
+        });
+        Object.keys(CONFIG.countryAliases).forEach(function (aliasRaw) {
+          const val = CONFIG.countryAliases[aliasRaw];
+          const targets = (Array.isArray(val) ? val : [val]).map(function (t) {
+            const tn = normalizeArabic(t);
+            return countryByNormName.get(tn) || countryByNormName.get(stripArticle(tn));
+          }).filter(Boolean);
+          if (targets.length) {
+            const na = normalizeArabic(aliasRaw);
+            normalizedAliasEntries.push({ norm: na, stripped: stripArticle(na), countries: targets });
+          }
+        });
+      }
+
+      function findExactGlobeCountry(raw) {
+        const norm = normalizeArabic(raw);
+        if (!norm) return null;
+        const stripped = stripArticle(norm);
+        if (countryByNormName.has(norm)) return countryByNormName.get(norm);
+        if (countryByNormName.has(stripped)) return countryByNormName.get(stripped);
+        for (let i = 0; i < normalizedAliasEntries.length; i++) {
+          const e = normalizedAliasEntries[i];
+          if (e.countries.length === 1 && (e.norm === norm || e.stripped === stripped)) return e.countries[0];
+        }
+        return null;
+      }
+
+      function getGlobeSuggestions(raw) {
+        const norm = normalizeArabic(raw);
+        if (norm.length < 2) return [];
+        if (findExactGlobeCountry(raw)) return [];
+        const stripped = stripArticle(norm);
+        const scores = new Map();
+        function rec(c, s) { const p = scores.get(c.id); if (p === undefined || s < p) scores.set(c.id, s); }
+
+        normalizedAliasEntries.forEach(function (e) {
+          if (e.norm === norm || e.stripped === stripped) { e.countries.forEach(function (c, i) { rec(c, 0.2 + i * 0.05); }); return; }
+          if (e.norm.startsWith(norm) || e.stripped.startsWith(stripped)) { e.countries.forEach(function (c, i) { rec(c, 1.0 + i * 0.05); }); return; }
+          if (norm.length >= 3) {
+            const d = Math.min(levenshtein(norm, e.norm), levenshtein(stripped, e.stripped));
+            if (d <= (e.stripped.length <= 4 ? 1 : 2)) e.countries.forEach(function (c, i) { rec(c, 2.2 + d + i * 0.05); });
+          }
+        });
+
+        playableCountries.forEach(function (c) {
+          if (c.normName.startsWith(norm) || c.strippedName.startsWith(stripped)) { rec(c, 0.8 + (c.strippedName.length - stripped.length) * 0.03); return; }
+          const words = c.strippedName.split(" ");
+          for (let w = 0; w < words.length; w++) { if (words[w].startsWith(stripped) && stripped.length >= 2) { rec(c, 1.5 + w * 0.15); return; } }
+          if (norm.length >= 3 && (c.normName.includes(norm) || c.strippedName.includes(stripped))) { rec(c, 2.0); return; }
+          if (stripped.length >= 3) {
+            const df = Math.min(levenshtein(norm, c.normName), levenshtein(stripped, c.strippedName));
+            if (df <= (c.strippedName.length <= 4 ? 1 : c.strippedName.length <= 8 ? 2 : 3)) { rec(c, 2.5 + df); return; }
+            for (let w = 0; w < words.length; w++) {
+              if (words[w].length >= 4 && levenshtein(stripped, words[w]) <= (words[w].length <= 5 ? 1 : 2)) { rec(c, 2.8 + levenshtein(stripped, words[w])); break; }
+            }
+          }
+        });
+
+        return Array.from(scores.entries())
+          .sort(function (a, b) { return a[1] - b[1]; })
+          .slice(0, CONFIG.settings.maxSuggestions)
+          .map(function (p) { return countryById.get(p[0]); });
+      }
+
+      function extractBorderPoints(feature) {
+        const pts = [], geom = feature.geometry;
+        if (!geom) return pts;
+        function pushRing(ring) {
+          if (!ring || !ring.length) return;
+          const step = Math.max(1, Math.floor(ring.length / 80));
+          for (let i = 0; i < ring.length; i += step) pts.push(ring[i]);
+        }
+        if (geom.type === "Polygon") pushRing(geom.coordinates[0]);
+        else if (geom.type === "MultiPolygon") geom.coordinates.forEach(function (poly) { pushRing(poly[0]); });
+        return pts;
+      }
+
+      function computeBorderDistanceKm(a, b) {
+        if (a.id === b.id) return 0;
+        const nA = neighborMap.get(a.id);
+        if (nA && nA.has(b.id)) return 0;
+        let minRad = Infinity;
+        for (let i = 0; i < a.borderPoints.length; i++) {
+          for (let j = 0; j < b.borderPoints.length; j++) {
+            const d = d3.geoDistance(a.borderPoints[i], b.borderPoints[j]);
+            if (d < minRad) minRad = d;
+          }
+        }
+        const km = Math.round(minRad * CONFIG.settings.earthRadiusKm);
+        return km <= 20 ? 0 : km;
+      }
+
+      function getDistanceColor(distKm) {
+        const stops = CONFIG.colors.closenessStops;
+        const curvedT = Math.pow(Math.max(0, Math.min(1, distKm / CONFIG.settings.maxColorDistanceKm)), 0.72);
+        for (let i = 0; i < stops.length - 1; i++) {
+          if (curvedT >= stops[i].t && curvedT <= stops[i + 1].t) {
+            return d3.interpolateRgb(stops[i].color, stops[i + 1].color)((curvedT - stops[i].t) / (stops[i + 1].t - stops[i].t));
+          }
+        }
+        return stops[stops.length - 1].color;
+      }
+
+      function resizeCanvas() {
+        if (!globeLoaded || activeView !== "globe") return;
+        const rect = globeStage.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        const size = Math.max(240, Math.floor(Math.min(rect.width, rect.height)));
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        globeCanvas.width = Math.floor(rect.width * dpr);
+        globeCanvas.height = Math.floor(rect.height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        baseScale = size * 0.45;
+        projection.translate([rect.width / 2, rect.height / 2]).scale(baseScale * zoomFactor).rotate(currentRotation);
+        renderGlobe();
+      }
+
+      /* رسم الكرة الأرضية مع إظهار أسماء الدول بشكل واضح وصغير بدون تداخل */
+      function renderGlobe() {
+        if (!globeLoaded) return;
+        const rect = globeStage.getBoundingClientRect();
+        const w = rect.width, h = rect.height;
+        if (!w || !h) return;
+
+        const isDark = document.documentElement.classList.contains("dark");
+        const path = d3.geoPath(projection, ctx);
+        ctx.clearRect(0, 0, w, h);
+
+        // 1) المحيط ثلاثي الأبعاد
+        const cx = w / 2, cy = h / 2, r = projection.scale();
+        const oceanGrad = ctx.createRadialGradient(cx - r * 0.28, cy - r * 0.28, r * 0.08, cx, cy, r);
+        oceanGrad.addColorStop(0, isDark ? CONFIG.colors.oceanDark : CONFIG.colors.oceanLight);
+        oceanGrad.addColorStop(1, isDark ? CONFIG.colors.oceanDarkEdge : CONFIG.colors.oceanLightEdge);
+        ctx.beginPath(); path({ type: "Sphere" }); ctx.fillStyle = oceanGrad; ctx.fill();
+
+        // 2) خطوط الطول والعرض
+        ctx.beginPath(); path(d3.geoGraticule10());
+        ctx.strokeStyle = isDark ? CONFIG.colors.graticuleDark : CONFIG.colors.graticuleLight;
+        ctx.lineWidth = 0.6; ctx.stroke();
+
+        const guessColorMap = new Map();
+        globeState.guesses.forEach(function (g) {
+          guessColorMap.set(g.id, g.id === globeState.mysteryId ? CONFIG.colors.winnerFill : getDistanceColor(g.distanceKm));
+        });
+
+        // 3) رسم الدول
+        const defaultLand = isDark ? CONFIG.colors.landDark : CONFIG.colors.landLight;
+        const defaultBorder = isDark ? CONFIG.colors.borderDark : CONFIG.colors.borderLight;
+
+        for (let i = 0; i < allFeatures.length; i++) {
+          const f = allFeatures[i];
+          const fid = String(f.id).padStart(3, "0");
+          let fillColor = guessColorMap.has(fid) ? guessColorMap.get(fid) : defaultLand;
+          let strokeColor = defaultBorder;
+          let lineW = 0.65;
+
+          if (globeState.status !== "playing" && fid === globeState.mysteryId) {
+            fillColor = CONFIG.colors.winnerFill;
+            strokeColor = CONFIG.colors.winnerStroke;
+            lineW = 1.8;
+          }
+
+          ctx.beginPath(); path(f);
+          ctx.fillStyle = fillColor; ctx.fill();
+          ctx.strokeStyle = strokeColor; ctx.lineWidth = lineW; ctx.stroke();
+        }
+
+        // 4) رسم أسماء الدول بشكل واضح وصغير مع منع التداخل التام (Smart Anti-Overlap)
+        const centerGeo = [-currentRotation[0], -currentRotation[1]];
+        const fontSize = Math.max(8.5, Math.min(11.5, 9 + (zoomFactor - 1) * 1.4));
+        ctx.font = "700 " + fontSize.toFixed(1) + "px Cairo, Tahoma, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        // نرتّب الأولوية: الدول المخمّنة أولاً ثم الدول الأكبر مساحةً على الشاشة
+        const labelCandidates = [];
+        for (let i = 0; i < playableCountries.length; i++) {
+          const c = playableCountries[i];
+          // إظهار الدول الموجودة في النصف الأمامي من الكرة فقط
+          if (d3.geoDistance(c.centroid, centerGeo) > Math.PI / 2 - 0.16) continue;
+          const proj = projection(c.centroid);
+          if (!proj || isNaN(proj[0]) || isNaN(proj[1])) continue;
+          const isGuessed = guessColorMap.has(c.id) || (globeState.status !== "playing" && c.id === globeState.mysteryId);
+          const screenArea = c.geoArea * r * r;
+          // إخفاء الدول الصغيرة جداً عند التصغير لتبقى الخريطة نظيفة وتظهر تلقائياً عند التكبير
+          if (!isGuessed && screenArea < 58) continue;
+          labelCandidates.push({ country: c, x: proj[0], y: proj[1], isGuessed: isGuessed, area: screenArea });
+        }
+
+        labelCandidates.sort(function (a, b) {
+          if (a.isGuessed !== b.isGuessed) return a.isGuessed ? -1 : 1;
+          return b.area - a.area;
+        });
+
+        const placedBoxes = [];
+        const padX = 5;
+        const padY = 3;
+
+        for (let i = 0; i < labelCandidates.length; i++) {
+          const item = labelCandidates[i];
+          const text = item.country.name;
+          const tw = ctx.measureText(text).width;
+          const th = fontSize + 2;
+          const box = {
+            x1: item.x - tw / 2 - padX,
+            y1: item.y - th / 2 - padY,
+            x2: item.x + tw / 2 + padX,
+            y2: item.y + th / 2 + padY
+          };
+
+          let overlaps = false;
+          for (let p = 0; p < placedBoxes.length; p++) {
+            const b = placedBoxes[p];
+            if (!(box.x2 < b.x1 || box.x1 > b.x2 || box.y2 < b.y1 || box.y1 > b.y2)) {
+              overlaps = true;
+              break;
+            }
+          }
+          if (overlaps) continue;
+          placedBoxes.push(box);
+
+          // هالة خفيفة حول الاسم ليكون مقروءاً بوضوح على أي لون
+          ctx.lineJoin = "round";
+          ctx.lineWidth = 2.8;
+          if (item.isGuessed) {
+            ctx.strokeStyle = "rgba(18, 16, 24, 0.85)";
+            ctx.fillStyle = "#FFFFFF";
+          } else {
+            ctx.strokeStyle = isDark ? "rgba(23, 21, 31, 0.88)" : "rgba(255, 255, 255, 0.88)";
+            ctx.fillStyle = isDark ? "#EDE9F7" : "#24201C";
+          }
+          ctx.strokeText(text, item.x, item.y);
+          ctx.fillText(text, item.x, item.y);
+        }
+
+        // 5) إطار الكرة الخارجي
+        ctx.beginPath(); path({ type: "Sphere" });
+        ctx.strokeStyle = isDark ? "rgba(139, 104, 240, 0.35)" : "rgba(91, 55, 183, 0.25)";
+        ctx.lineWidth = 1.6; ctx.stroke();
+      }
+
+      function rotateGlobeTo(lonLat) {
+        if (!lonLat || isNaN(lonLat[0]) || isNaN(lonLat[1])) return;
+        if (animFrameId) cancelAnimationFrame(animFrameId);
+        const startRot = currentRotation.slice();
+        const targetRot = [-lonLat[0], -Math.max(-65, Math.min(65, lonLat[1])), 0];
+        const interp = d3.interpolateArray(startRot, targetRot);
+        const startTime = performance.now();
+        function step(now) {
+          const t = Math.min(1, (now - startTime) / 680);
+          currentRotation = interp(1 - Math.pow(1 - t, 3));
+          projection.rotate(currentRotation);
+          renderGlobe();
+          if (t < 1) animFrameId = requestAnimationFrame(step);
+          else animFrameId = null;
+        }
+        animFrameId = requestAnimationFrame(step);
+      }
+
+      function initGlobeControls() {
+        let dragging = false, lx = 0, ly = 0;
+        globeCanvas.addEventListener("pointerdown", function (e) {
+          if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
+          dragging = true; lx = e.clientX; ly = e.clientY;
+          if (globeCanvas.setPointerCapture) { try { globeCanvas.setPointerCapture(e.pointerId); } catch (err) {} }
+        });
+        globeCanvas.addEventListener("pointermove", function (e) {
+          if (!dragging) return;
+          const dx = e.clientX - lx, dy = e.clientY - ly;
+          lx = e.clientX; ly = e.clientY;
+          const sens = 0.35 / Math.sqrt(zoomFactor);
+          currentRotation[0] += dx * sens;
+          currentRotation[1] = Math.max(-75, Math.min(75, currentRotation[1] - dy * sens));
+          projection.rotate(currentRotation);
+          renderGlobe();
+        });
+        function stop() { dragging = false; }
+        globeCanvas.addEventListener("pointerup", stop);
+        globeCanvas.addEventListener("pointercancel", stop);
+
+        zoomInBtn.addEventListener("click", function () {
+          zoomFactor = Math.min(3.5, zoomFactor * 1.25);
+          projection.scale(baseScale * zoomFactor);
+          renderGlobe();
+        });
+        zoomOutBtn.addEventListener("click", function () {
+          zoomFactor = Math.max(0.8, zoomFactor / 1.25);
+          projection.scale(baseScale * zoomFactor);
+          renderGlobe();
+        });
+      }
+
+      function showGlobeFeedback(msg, type) {
+        if (globeFeedbackTimer) clearTimeout(globeFeedbackTimer);
+        globeFeedbackPill.textContent = msg;
+        globeFeedbackPill.className = "feedback-pill visible " + type;
+        globeFeedbackTimer = setTimeout(function () { globeFeedbackPill.classList.remove("visible"); }, 3000);
+      }
+
+      function hideSuggestions() { didYouMeanBox.classList.remove("visible"); didYouMeanBox.innerHTML = ""; }
+
+      function renderSuggestions(raw) {
+        if (globeState.status !== "playing") { hideSuggestions(); return; }
+        const list = getGlobeSuggestions(raw);
+        if (!list.length) { hideSuggestions(); return; }
+        didYouMeanBox.innerHTML = "";
+        const lbl = document.createElement("span"); lbl.className = "dym-label"; lbl.textContent = "هل تقصد:";
+        didYouMeanBox.appendChild(lbl);
+        list.forEach(function (c) {
+          const b = document.createElement("button"); b.type = "button"; b.className = "dym-btn"; b.textContent = c.name;
+          b.addEventListener("click", function () { submitGlobeGuess(c); });
+          didYouMeanBox.appendChild(b);
+        });
+        const qm = document.createElement("span"); qm.className = "dym-label"; qm.textContent = "؟";
+        didYouMeanBox.appendChild(qm);
+        didYouMeanBox.classList.add("visible");
+      }
+
+      function renderGlobeUI() {
+        guessCountVal.textContent = String(globeState.guesses.length);
+        gamesPlayedVal.textContent = String(globeState.stats.gamesPlayed);
+        winsVal.textContent = String(globeState.stats.wins);
+        avgGuessesVal.textContent = globeState.stats.wins > 0
+          ? (globeState.stats.totalGuessesOnWins / globeState.stats.wins).toFixed(1)
+          : "—";
+
+        guessesList.innerHTML = "";
+        if (!globeState.guesses.length) {
+          const em = document.createElement("div"); em.className = "empty-guesses";
+          em.textContent = "ابدأ بتخمين أي دولة في العالم لتتلوّن الكرة الأرضية وتعرف كم أنت قريب!";
+          guessesList.appendChild(em);
+        } else {
+          globeState.guesses.slice().sort(function (a, b) { return a.distanceKm - b.distanceKm; }).forEach(function (g) {
+            const c = countryById.get(g.id); if (!c) return;
+            const win = g.id === globeState.mysteryId;
+            const row = document.createElement("div"); row.className = "guess-row" + (win ? " is-winner" : "");
+            const main = document.createElement("div"); main.className = "guess-row-main";
+            const sw = document.createElement("span"); sw.className = "color-swatch";
+            sw.style.backgroundColor = win ? CONFIG.colors.winnerFill : getDistanceColor(g.distanceKm);
+            const nm = document.createElement("span"); nm.className = "guess-country-name"; nm.textContent = c.name;
+            main.appendChild(sw); main.appendChild(nm);
+            const dist = document.createElement("span"); dist.className = "guess-distance";
+            dist.textContent = win ? "الدولة المطلوبة!" : g.distanceKm === 0 ? "حدود مشتركة (0 كم)" : g.distanceKm.toLocaleString("en-US") + " كم";
+            row.appendChild(main); row.appendChild(dist);
+            row.addEventListener("click", function () { rotateGlobeTo(c.centroid); });
+            guessesList.appendChild(row);
+          });
+        }
+
+        const mystery = countryById.get(globeState.mysteryId);
+        const playing = globeState.status === "playing";
+        globeGuessInput.disabled = !playing;
+        globeGuessBtn.disabled = !playing;
+        continentBtn.disabled = !playing || globeState.continentRevealed;
+        giveUpBtn.disabled = !playing;
+
+        if (globeState.continentRevealed && mystery) {
+          continentBanner.textContent = "تلميح القارة: تقع الدولة الغامضة في قارة " + mystery.continent;
+          continentBanner.classList.add("show");
+        } else {
+          continentBanner.classList.remove("show");
+        }
+
+        if (globeState.status === "won" && mystery) {
+          globeResultBanner.className = "result-banner show won";
+          globeResultTitle.textContent = "مبروك! اكتشفت الدولة الغامضة 🎉";
+          globeResultDesc.textContent = "الدولة هي «" + mystery.name + "» (" + mystery.continent + ") خلال " + globeState.guesses.length + " تخمينات!";
+        } else if (globeState.status === "gaveup" && mystery) {
+          globeResultBanner.className = "result-banner show gaveup";
+          globeResultTitle.textContent = "تم كشف الدولة الغامضة";
+          globeResultDesc.textContent = "الدولة الغامضة كانت «" + mystery.name + "» في قارة " + mystery.continent + ".";
+        } else {
+          globeResultBanner.className = "result-banner";
+        }
+
+        renderGlobe();
+      }
+
+      function sendGlobeReport(outcomeLabel) {
+        if (!playerName) return;
+        const m = countryById.get(globeState.mysteryId);
+        const awaySec = Math.round(totalAwayMs / 1000);
+        sendFormspree({
+          _subject: "اكتشف الدولة مع عبدالمجيد — " + playerName + " (" + outcomeLabel + ")",
+          الوقت: new Date().toLocaleString("ar-SA"),
+          اسم_اللاعب: playerName,
+          النتيجة: outcomeLabel,
+          الدولة_الغامضة: m ? m.name : "",
+          عدد_التخمينات: globeState.guesses.length,
+          تلميح_القارة: globeState.continentRevealed ? "نعم" : "لا",
+          مرات_الخروج_والرجوع: tabSwitchCount + " مرة",
+          مدة_الغياب: awaySec + " ثانية",
+          نوع_الجهاز: deviceInfo
+        }, false);
+      }
+
+      function submitGlobeGuess(country) {
+        if (globeState.status !== "playing" || !country) return;
+        if (globeState.guesses.some(function (g) { return g.id === country.id; })) {
+          showGlobeFeedback("لقد خمّنت هذه الدولة مسبقاً!", "info");
+          rotateGlobeTo(country.centroid);
+          globeGuessInput.value = ""; hideSuggestions();
+          return;
+        }
+        const mystery = countryById.get(globeState.mysteryId);
+        const distKm = computeBorderDistanceKm(country, mystery);
+        globeState.guesses.push({ id: country.id, distanceKm: distKm });
+        globeGuessInput.value = ""; hideSuggestions();
+
+        if (country.id === globeState.mysteryId) {
+          globeState.status = "won";
+          globeState.stats.gamesPlayed += 1;
+          globeState.stats.wins += 1;
+          globeState.stats.totalGuessesOnWins += globeState.guesses.length;
+          playSound("win");
+          showGlobeFeedback("رائع! وجدت «" + country.name + "»!", "success");
+          sendGlobeReport("فوز");
+        } else {
+          playSound(distKm <= 1200 ? "close" : "guess");
+          showGlobeFeedback(
+            distKm === 0 ? "قريب جداً! «" + country.name + "» تشترك في الحدود!" : "«" + country.name + "» تبعد " + distKm.toLocaleString("en-US") + " كم",
+            "info"
+          );
+        }
+        saveHubStorage();
+        renderGlobeUI();
+        rotateGlobeTo(country.centroid);
+        if (globeState.status === "playing") globeGuessInput.focus();
+      }
+
+      function startNewGlobeRound() {
+        if (!playableCountries.length) return;
+        const prev = globeState.mysteryId;
+        let pick = playableCountries[Math.floor(Math.random() * playableCountries.length)];
+        if (playableCountries.length > 1 && pick.id === prev) {
+          pick = playableCountries[(playableCountries.indexOf(pick) + 1) % playableCountries.length];
+        }
+        globeState.mysteryId = pick.id;
+        globeState.guesses = [];
+        globeState.continentRevealed = false;
+        globeState.status = "playing";
+        tabSwitchCount = 0; totalAwayMs = 0; awayStartedAt = null;
+        globeGuessInput.value = ""; hideSuggestions();
+        saveHubStorage();
+        renderGlobeUI();
+        globeGuessInput.focus();
+      }
+
+      async function ensureGlobeLoaded() {
+        if (globeLoaded || globeLoadingStarted) return;
+        globeLoadingStarted = true;
+        globeLoading.classList.remove("hidden");
+        globeLoadingText.textContent = "جاري تحميل خريطة العالم...";
+        try {
+          const resp = await fetch(CONFIG.settings.worldAtlasUrl);
+          if (!resp.ok) throw new Error("HTTP " + resp.status);
+          const world = await resp.json();
+          const geometries = world.objects.countries.geometries;
+          const features = topojson.feature(world, world.objects.countries).features;
+          const neighborsIdx = topojson.neighbors(geometries);
+
+          allFeatures = features;
+          playableCountries = [];
+          countryById.clear();
+          neighborMap.clear();
+
+          geometries.forEach(function (geom, idx) {
+            const idA = String(geom.id).padStart(3, "0");
+            const set = new Set();
+            (neighborsIdx[idx] || []).forEach(function (nIdx) { set.add(String(geometries[nIdx].id).padStart(3, "0")); });
+            neighborMap.set(idA, set);
+          });
+
+          features.forEach(function (feat) {
+            const id = String(feat.id).padStart(3, "0");
+            const meta = COUNTRIES_AR[id];
+            if (!meta) return;
+            const normName = normalizeArabic(meta.name);
+            const obj = {
+              id: id,
+              name: meta.name,
+              continent: meta.continent,
+              normName: normName,
+              strippedName: stripArticle(normName),
+              feature: feat,
+              centroid: d3.geoCentroid(feat),
+              geoArea: d3.geoArea(feat),
+              borderPoints: extractBorderPoints(feat)
+            };
+            playableCountries.push(obj);
+            countryById.set(id, obj);
+          });
+
+          buildGlobeSearchIndex();
+          loadHubStorage();
+          if (!globeState.mysteryId || !countryById.has(globeState.mysteryId)) {
+            startNewGlobeRound();
+          }
+          globeLoaded = true;
+          globeLoading.classList.add("hidden");
+          resizeCanvas();
+          renderGlobeUI();
+        } catch (err) {
+          globeLoadingStarted = false;
+          globeLoadingText.textContent = "تعذّر تحميل خريطة العالم. تأكد من اتصالك بالإنترنت ثم حاول مجدداً.";
+        }
+      }
+
+      globeGuessInput.addEventListener("input", function () { renderSuggestions(globeGuessInput.value); });
+
+      globeGuessForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        if (globeState.status !== "playing") return;
+        const raw = globeGuessInput.value.trim();
+        if (!raw) {
+          globeGuessForm.classList.remove("shake"); void globeGuessForm.offsetWidth; globeGuessForm.classList.add("shake");
+          showGlobeFeedback("اكتب اسم دولة أولاً", "info");
+          return;
+        }
+        const exact = findExactGlobeCountry(raw);
+        if (exact) { submitGlobeGuess(exact); return; }
+        const sug = getGlobeSuggestions(raw);
+        if (sug.length) {
+          renderSuggestions(raw);
+          globeGuessForm.classList.remove("shake"); void globeGuessForm.offsetWidth; globeGuessForm.classList.add("shake");
+          showGlobeFeedback("اختر الدولة المقصودة من اقتراحات «هل تقصد» بالأسفل", "info");
+        } else {
+          playSound("error");
+          globeGuessForm.classList.remove("shake"); void globeGuessForm.offsetWidth; globeGuessForm.classList.add("shake");
+          showGlobeFeedback("لم أتعرف على هذه الدولة، جرّب كتابة الاسم بشكل آخر", "error");
+        }
+      });
+
+      continentBtn.addEventListener("click", function () {
+        if (globeState.status !== "playing" || globeState.continentRevealed) return;
+        globeState.continentRevealed = true;
+        playSound("hint");
+        saveHubStorage();
+        renderGlobeUI();
+      });
+
+      giveUpBtn.addEventListener("click", function () {
+        if (globeState.status !== "playing") return;
+        const m = countryById.get(globeState.mysteryId);
+        globeState.status = "gaveup";
+        globeState.stats.gamesPlayed += 1;
+        playSound("error");
+        hideSuggestions();
+        saveHubStorage();
+        renderGlobeUI();
+        if (m) rotateGlobeTo(m.centroid);
+        sendGlobeReport("استسلم");
+      });
+
+      newGameBtn.addEventListener("click", startNewGlobeRound);
+      globePlayAgainBtn.addEventListener("click", startNewGlobeRound);
+
+      /* =========================================================================
+         9) تدفق الدخول من بوابة التحديات (الاسم ← ثم قائمة دولة ومدينة الأحلام لتحدي سويسرا)
+         ========================================================================= */
+      launchGlobeBtn.addEventListener("click", function () {
+        pendingLaunch = "globe";
+        nameError.textContent = "";
+        nameModalDesc.textContent = "اكتب اسمك أولاً لبدء لعبة اكتشف الدولة مع عبدالمجيد";
+        nameSubmitBtn.textContent = "ابدأ اللعب";
+        playerNameInput.value = playerName || "";
+        nameModal.classList.remove("hidden");
+        playerNameInput.focus();
+      });
+
+      launchSwissBtn.addEventListener("click", function () {
+        pendingLaunch = "swiss";
+        nameError.textContent = "";
+        nameModalDesc.textContent = "اكتب اسمك أولاً للانتقال إلى تحدي أفضل 10 دول تشبه سويسرا";
+        nameSubmitBtn.textContent = "التالي";
+        playerNameInput.value = playerName || "";
+        nameModal.classList.remove("hidden");
+        playerNameInput.focus();
+      });
+
+      cancelNameBtn.addEventListener("click", function () {
+        nameModal.classList.add("hidden");
+        pendingLaunch = null;
+      });
+
+      nameForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const nm = playerNameInput.value.trim();
+        if (!nm) { nameError.textContent = "يرجى كتابة اسمك أولاً"; playerNameInput.focus(); return; }
+        playerName = nm;
+        saveHubStorage();
+        nameModal.classList.add("hidden");
+
+        if (pendingLaunch === "swiss") {
+          dreamError.textContent = "";
+          dreamCountryInput.value = dreamCountry || "";
+          dreamCityInput.value = dreamCity || "";
+          dreamModal.classList.remove("hidden");
+          dreamCountryInput.focus();
+        } else if (pendingLaunch === "globe") {
+          showView("globe");
+        }
+      });
+
+      dreamForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const dc = dreamCountryInput.value.trim();
+        if (!dc) { dreamError.textContent = "يرجى كتابة دولة أحلامك"; dreamCountryInput.focus(); return; }
+        dreamCountry = dc;
+        dreamCity = dreamCityInput.value.trim();
+        dreamModal.classList.add("hidden");
+        startSwissGame();
+      });
+
+      backHomeBtn.addEventListener("click", function () {
+        if (activeView === "swiss" && !swissState.reportSent && swissState.guesses.length > 0) {
+          swissState.reportSent = true;
+          sendSwissReport("عاد للرئيسية قبل الإكمال", false);
+        }
+        showView("hub");
+      });
+
+      // صندوق اقتراحات الزوار
       suggestForm.addEventListener("submit", function (e) {
         e.preventDefault();
         const idea = suggestInput.value.trim();
@@ -1493,44 +2559,39 @@
         suggestInput.value = "";
         suggestStatus.textContent = "تم إرسال اقتراحك لعبدالمجيد بنجاح! شكراً لك 🙌";
         playSound("correct");
-        setTimeout(function () {
-          suggestStatus.textContent = "";
-        }, 4000);
+        setTimeout(function () { suggestStatus.textContent = ""; }, 4000);
       });
 
-      // Exit beacon if player leaves mid-game
+      // تسجيل الخروج المفاجئ
       window.addEventListener("pagehide", function () {
-        if (!inGame || !playerName || reportSent) return;
-        reportSent = true;
-        sendGameReport("خروج من الموقع أثناء اللعب", true);
+        if (activeView === "swiss" && playerName && !swissState.reportSent && swissState.guesses.length > 0) {
+          swissState.reportSent = true;
+          sendSwissReport("خروج أثناء اللعب", true);
+        }
       });
 
-      // Theme & Sound
+      // الوضع الليلي والصوت
       function applyTheme(isDark) {
         document.documentElement.classList.toggle("dark", isDark);
         moonIcon.style.display = isDark ? "none" : "block";
         sunIcon.style.display = isDark ? "block" : "none";
-        try {
-          localStorage.setItem("abdulmajeed_hub_theme", isDark ? "dark" : "light");
-        } catch (e) {}
+        try { localStorage.setItem("abdulmajeed_hub_theme", isDark ? "dark" : "light"); } catch (e) {}
+        if (globeLoaded && activeView === "globe") renderGlobe();
       }
 
-      themeBtn.addEventListener("click", function () {
-        applyTheme(!document.documentElement.classList.contains("dark"));
-      });
-
+      themeBtn.addEventListener("click", function () { applyTheme(!document.documentElement.classList.contains("dark")); });
       soundBtn.addEventListener("click", function () {
         soundEnabled = !soundEnabled;
         soundIconOn.style.display = soundEnabled ? "block" : "none";
         soundIconOff.style.display = soundEnabled ? "none" : "block";
       });
 
-      try {
-        if (localStorage.getItem("abdulmajeed_hub_theme") === "dark") {
-          applyTheme(true);
-        }
-      } catch (e) {}
+      window.addEventListener("resize", resizeCanvas);
 
+      // التشغيل الأولي
+      initGlobeControls();
+      loadHubStorage();
+      try { if (localStorage.getItem("abdulmajeed_hub_theme") === "dark") applyTheme(true); } catch (e) {}
       showView("hub");
     })();
   </script>
